@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Viraaj's Portfolio - Web Developer & Game Creator | Interactive Games & Tools0</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Viraaj Sharma's Portfolio - Passionate hobby game developer showcasing interactive web games, AI tools, and creative projects. Features Snake, Space Invaders, 2048, Tetris, and more browser-based games built with JavaScript, HTML5, and CSS.">
+  <meta name="keywords" content="web developer portfolio, JavaScript games, HTML5 games, browser games, Snake game, Space Invaders, Tetris, 2048, web development, game development, interactive projects, AI chatbot, pixel art tool, voice notes app, Viraaj's Portfolio, Viraaj Sharma">
+  <meta name="author" content="V - VS0001">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="English">
+  <meta name="theme-color" content="#4ecdc4">
+
+  <!-- Open Graph Meta Tags for Social Media -->
+  <meta property="og:title" content="Viraaj Sharma's Portfolio - Interactive Web Games & Development Projects">
+  <meta property="og:description" content="Explore a collection of browser-based games and tools including Snake, Space Invaders, 2048, AI Chatbot, and more. Built by passionate hobby developer Viraaj Sharma.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vportfolio.replit.app">
+  <meta property="og:site_name" content="Viraaj Sharma's Portfolio">
+  <meta property="og:locale" content="en_US">
+
+ 
+  
+
+  <!-- Additional SEO -->
+  <link rel="canonical" href="https://vportfolio.replit.app">
+  <meta name="rating" content="General">
+  <meta name="distribution" content="Global">
+  
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Viraaj Sharma",
+    "alternateName": "V - VS0001",
+    "url": "https://vportfolio.replit.app",
+    "sameAs": [
+      "https://github.com/VS0001",
+      "https://youtube.com/@V.dev500",
+      "https://replit.com/@VS0001"
+    ],
+    "jobTitle": "Web Developer & Game Creator",
+    "description": "Passionate hobby game developer showcasing interactive web games, AI tools, and creative projects",
+    "knowsAbout": ["JavaScript", "HTML5", "CSS", "Python", "Flask", "Game Development", "Web Development"],
+    "hasCreatedWork": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "Emoji Space Invaders",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser"
+      },
+      {
+        "@type": "SoftwareApplication", 
+        "name": "Sammy the Snake",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "name": "Block Drop",
+        "applicationCategory": "Game", 
+        "operatingSystem": "Web Browser"
+      }
+    ]
+  }
+  </script>
+  <style>
+    * {
+      transition: all 0.3s ease;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    h3 {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h1 {
+      font-size: 3em;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: slideInUp 1s ease-out 0.2s both;
+    }
+
+    .bio-section {
+      margin: 40px 0;
+      display: flex;
+      justify-content: center;
+      animation: slideInLeft 1s ease-out 0.4s both;
+    }
+
+    .bio-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 800px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.4s ease;
+    }
+
+    .bio-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .bio-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid rgba(78, 205, 196, 0.3);
+    }
+
+    .avatar {
+      font-size: 3em;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);
+    }
+
+    .bio-header h2 {
+      margin: 0;
+      font-size: 2em;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .bio-content p {
+      font-size: 1.1em;
+      line-height: 1.6;
+      margin: 15px 0;
+      opacity: 0.9;
+    }
+
+    .intro {
+      font-size: 1.3em !important;
+      font-weight: bold;
+      color: #4ecdc4;
+      margin-bottom: 20px !important;
+    }
+
+    .highlight {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: bold;
+    }
+
+    .skills-section, .interests-section {
+      margin: 25px 0;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .skills-section h3, .interests-section h3 {
+      margin: 0 0 15px 0;
+      color: #4ecdc4;
+      font-size: 1.2em;
+    }
+
+    .skills-grid {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .skill-tag {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9em;
+      transition: transform 0.3s ease;
+    }
+
+    .skill-tag:hover {
+      transform: scale(1.1);
+    }
+
+    .python { background: linear-gradient(45deg, #3776ab, #ffd43b); }
+    .flask { background: linear-gradient(45deg, #000000, #ffffff); color: #000; }
+    .html { background: linear-gradient(45deg, #e34c26, #f06529); }
+    .css { background: linear-gradient(45deg, #1572b6, #33a9dc); }
+    .js { background: linear-gradient(45deg, #f7df1e, #f0db4f); color: #000; }
+
+    .interests-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .interests-list li {
+      padding: 8px 0;
+      font-size: 1.1em;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .interests-list li:last-child {
+      border-bottom: none;
+    }
+
+    .outro {
+      font-style: italic;
+      text-align: center;
+      margin-top: 25px !important;
+      color: #4ecdc4;
+      font-weight: bold;
+    }
+
+    .links-section {
+      margin: 30px 0;
+      text-align: center;
+      animation: slideInRight 1s ease-out 0.6s both;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .social-links a {
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid #4ecdc4;
+      border-radius: 25px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .social-links a:hover {
+      background: #4ecdc4;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(78, 205, 196, 0.3);
+    }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      width: 100%;
+      animation: slideInUp 1s ease-out 0.8s both;
+    }
+
+    .game-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.4s ease;
+      backdrop-filter: blur(10px);
+      animation: slideInUp 0.6s ease-out both;
+    }
+
+    .game-card:nth-child(1) { animation-delay: 1s; }
+    .game-card:nth-child(2) { animation-delay: 1.1s; }
+    .game-card:nth-child(3) { animation-delay: 1.2s; }
+    .game-card:nth-child(4) { animation-delay: 1.3s; }
+    .game-card:nth-child(5) { animation-delay: 1.4s; }
+    .game-card:nth-child(6) { animation-delay: 1.5s; }
+    .game-card:nth-child(7) { animation-delay: 1.6s; }
+    .game-card:nth-child(8) { animation-delay: 1.7s; }
+    .game-card:nth-child(9) { animation-delay: 1.8s; }
+    .game-card:nth-child(10) { animation-delay: 1.9s; }
+    .game-card:nth-child(11) { animation-delay: 2s; }
+    .game-card:nth-child(12) { animation-delay: 2.1s; }
+    .game-card:nth-child(13) { animation-delay: 2.2s; }
+    .game-card:nth-child(14) { animation-delay: 2.3s; }
+    .game-card:nth-child(15) { animation-delay: 2.4s; }
+    .game-card:nth-child(16) { animation-delay: 2.5s; }
+
+    .game-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border-color: #4ecdc4;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .game-card h3 {
+      margin: 0 0 10px 0;
+      font-size: 1.5em;
+      transition: all 0.3s ease;
+    }
+
+    .game-card:hover h3 {
+      color: #4ecdc4;
+      transform: scale(1.05);
+    }
+
+    .game-card p {
+      margin: 0 0 15px 0;
+      opacity: 0.8;
+      font-size: 0.9em;
+      transition: all 0.3s ease;
+    }
+
+    .game-card:hover p {
+      opacity: 1;
+    }
+
+    .game-card button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .game-card button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .game-card button:hover::before {
+      left: 100%;
+    }
+
+    .game-card button:hover {
+      transform: scale(1.08);
+      box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5);
+      animation: pulse 1.5s infinite;
+    }
+
+    .organization-section {
+      margin: 40px 0;
+      text-align: center;
+      animation: slideInUp 1s ease-out 0.6s both;
+    }
+
+    .organization-section h2 {
+      color: #4ecdc4;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .organization-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.4s ease;
+    }
+
+    .organization-controls:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .organization-controls label {
+      font-weight: bold;
+      color: #4ecdc4;
+      font-size: 1.1em;
+    }
+
+    .organization-controls select {
+      padding: 10px 15px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border: 2px solid #4ecdc4;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .organization-controls select:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.05);
+    }
+
+    .organization-controls select:focus {
+      outline: none;
+      box-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+    }
+
+    .organization-controls select option {
+      background: #1a1a2e;
+      color: white;
+      padding: 10px;
+    }
+
+    .games-grid.organizing {
+      opacity: 0.5;
+      transform: scale(0.95);
+    }
+
+    .category-divider {
+      width: 100%;
+      padding: 20px 0;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #4ecdc4;
+      background: linear-gradient(45deg, rgba(255, 107, 107, 0.1), rgba(78, 205, 196, 0.1));
+      border-radius: 10px;
+      margin: 10px 0;
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2em;
+      }
+
+      .social-links {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .games-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .organization-controls {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+
+    
+  </style>
+</head>
+<body>
+
+  <h1>Viraaj's Portfolio</h1>
+
+  
+
+  <div class="bio-section">
+    <div class="bio-card">
+      <div class="bio-header">
+        <div class="avatar" role="img" aria-label="Developer avatar emoji">👨‍💻</div>
+        <h2>About Me</h2>
+      </div>
+      <div class="bio-content">
+        <p class="intro">Hello! Welcome to my portfolio, originally created on 5/27/2025.</p>
+        <p>I'm a passionate <span class="highlight">hobby game developer (I make fun stuff when I'm bored) </span> located on the West Coast. I do small games and small things I find helpful.</p>
+
+        <div class="skills-section">
+          <h3>🛠️ My Tech Stack (The coding languages I know)</h3>
+          <div class="skills-grid">
+            <span class="skill-tag python">Python</span>
+            <span class="skill-tag flask">Flask</span>
+            <span class="skill-tag html">HTML</span>
+            <span class="skill-tag css">CSS</span>
+            <span class="skill-tag js">JavaScript</span>
+          </div>
+        </div>
+
+
+
+        <p class="outro">Explore my games below and connect with me on GitHub and YouTube! (Sorry my YouTube only has 1 video.)</p>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="links-section">
+    <div class="social-links">
+      <a href="https://github.com/VS0001" target="_blank">🔗 GitHub: VS0001</a>
+      <a href="https://youtube.com/@V.dev500" target="_blank">📺 YouTube: V.dev500</a>
+      
+    </div>
+  </div>
+
+  <!-- Game Organization Controls -->
+  <div class="organization-section">
+    <h2>🎮 Browse My Games</h2>
+    <div class="organization-controls">
+      <label for="organizationMode">Categorize by:</label>
+      <select id="organizationMode">
+        <option value="default">Default Order</option>
+        <option value="orderCreated">Order Created (First created to last created)</option>
+        <option value="type">Type (Game, AI, Puzzle Game, Tool)</option>
+        <option value="az">A-Z</option>
+        <option value="za">Z-A</option>
+        <option value="recommendation">Recommendation (Best to mediocre)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="games-grid">
+    <div class="game-card">
+      <h3>🚀 Emoji Space Invaders</h3>
+      <p>Classic space shooter with emoji characters and power-ups</p>
+      <button onclick="window.location.href='dashboard.html'">Play Game</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🐍 Sammy the Snake</h3>
+      <p>Classic snake game with increasing difficulty</p>
+      <button onclick="window.location.href='sammysnake.html'">Play Game</button>
+    </div>
+
+    
+
+    <div class="game-card">
+      <h3>🔳 Brick Breaker</h3>
+      <p>Breakout-style game with boss battles</p>
+      <button onclick="window.location.href='brickbreaker.html'">Play Game</button>
+    </div>
+
+    <div class="game-card">
+      <h3>☁️ Fluffy Fluff Fluff Fluffer</h3>
+      <p>Navigate a fluffy cloud through spiky obstacles</p>
+      <button onclick="window.location.href='flappybird.html'">Play Game</button>
+    </div>
+
+    
+
+    <div class="game-card">
+          <h3>🌀 Maze Runner</h3>
+          <p>Navigate through challenging mazes from 5x5 to 100x100 grids. Find your way from start to finish!</p>
+          <button onclick="window.location.href='maze.html'">Play Maze Runner</button>
+        </div>
+
+        <div class="game-card">
+          <h3>🎯 Hangman</h3>
+          <p>Guess the hidden word letter by letter before running out of chances!</p>
+          <button onclick="window.location.href='hangman.html'">Play Game</button>
+        </div>
+
+        <div class="game-card">
+          <h3>🔍 Word Search</h3>
+          <p>Find hidden words in letter grids. Words can be horizontal, vertical, diagonal!</p>
+          <button onclick="window.location.href='wordsearch.html'">Play Game</button>
+        </div>
+
+        <div class="game-card">
+          <h3>📝 Word Guesser</h3>
+          <p>Guess the secret word with colored clues! Choose difficulty and word length.</p>
+          <button onclick="window.location.href='wordguesser.html'">Play Game</button>
+        </div>
+
+        <div class="game-card">
+          <h3>🔢 2048</h3>
+          <p>Combine tiles with the same number to reach the elusive 2048 tile!</p>
+          <button onclick="window.location.href='game2048.html'">Play 2048</button>
+        </div>
+
+        <div class="game-card">
+          <h3>🧩 Slider Puzzle</h3>
+          <p>Arrange numbered tiles in order by sliding them into the empty space!</p>
+          <button onclick="window.location.href='sliderpuzzle.html'">Play Slider Puzzle</button>
+        </div>
+
+
+
+    <div class="game-card">
+      <h3>🍉 Fruit Merge</h3>
+      <p>Merge fruits to create bigger ones and reach the watermelon!</p>
+      <button onclick="window.location.href='fruitmerge.html'">Play Game</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🤖 Chatbot 2.6</h3>
+      <p>Interactive keyword-detection chatbot with games, jokes, and conversation!</p>
+      <button onclick="window.location.href='chatbot.html'">Chat Now</button>
+    </div>
+
+    <div class="game-card">
+      <h3>⛏️ Gold Miner</h3>
+      <p>Collect gold nuggets within limited moves!</p>
+      <button onclick="window.location.href='minesweeper.html'">Play Game</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🎨 Pixel Artist</h3>
+      <p>Create pixel art designs with a visual color palette and save your masterpieces!</p>
+      <button onclick="window.location.href='pixelartist.html'">Create Art</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🎤 Voice Notes</h3>
+      <p>Record and manage voice notes with speech recognition and export functionality.</p>
+      <button onclick="window.location.href='voicenotes.html'">Try Voice Notes</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🏓 Pong</h3>
+      <p>Classic Pong game with AI opponents and local multiplayer modes!</p>
+      <button onclick="window.location.href='pong.html'">Play Pong</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🐍 Snake Battle</h3>
+      <p>Multiplayer snake game! Battle against AI or friends in intense snake combat!</p>
+      <button onclick="window.location.href='snakebattle.html'">Play Snake Battle</button>
+    </div>
+
+
+  </div>
+
+  
+
+<script>
+  // Game categorization data
+  const gameCategories = {
+    "dashboard.html": { 
+      type: "Game", 
+      title: "🚀 Emoji Space Invaders",
+      orderCreated: 1,
+      recommendation: 1
+    },
+    
+    "flappybird.html": { 
+      type: "Game", 
+      title: "☁️ Fluffy Fluff Fluff Fluffer",
+      orderCreated: 3,
+      recommendation: 11
+    },
+    "brickbreaker.html": { 
+      type: "Game", 
+      title: "🔳 Brick Breaker",
+      orderCreated: 4,
+      recommendation: 6
+    },
+    
+    "sammysnake.html": { 
+      type: "Game", 
+      title: "🐍 Sammy the Snake",
+      orderCreated: 6,
+      recommendation: 3
+    },
+    "fruitmerge.html": { 
+      type: "Game", 
+      title: "🍉 Fruit Merge",
+      orderCreated: 7,
+      recommendation: 2
+    },
+    "maze.html": { 
+      type: "Puzzle Game", 
+      title: "🌀 Maze Runner",
+      orderCreated: 8,
+      recommendation: 8
+    },
+    "wordgames.html": { 
+      type: "Puzzle Game", 
+      title: "📝 Word Games",
+      orderCreated: 9,
+      recommendation: 9
+    },
+    "game2048.html": { 
+      type: "Puzzle Game", 
+      title: "🔢 2048",
+      orderCreated: 10,
+      recommendation: 0
+    },
+    "sliderpuzzle.html": { 
+      type: "Puzzle Game", 
+      title: "🧩 Slider Puzzle",
+      orderCreated: 11,
+      recommendation: 0
+    },
+    "minesweeper.html": { 
+      type: "Puzzle Game", 
+      title: "⛏️ Gold Miner",
+      orderCreated: 13,
+      recommendation: 10
+    },
+    "hangman.html": { 
+      type: "Puzzle Game", 
+      title: "🎯 Hangman",
+      orderCreated: 15,
+      recommendation: 7
+    },
+    "wordsearch.html": { 
+      type: "Puzzle Game", 
+      title: "🔍 Word Search",
+      orderCreated: 16,
+      recommendation: 6
+    },
+    "wordguesser.html": { 
+      type: "Puzzle Game", 
+      title: "📝 Word Guesser",
+      orderCreated: 17,
+      recommendation: 8
+    },
+    "pixelartist.html": { 
+      type: "Tool", 
+      title: "🎨 Pixel Artist",
+      orderCreated: 14,
+      recommendation: 4
+    },
+    "chatbot.html": { 
+      type: "AI", 
+      title: "🤖 Chatbot 2.6",
+      orderCreated: 0,
+      recommendation: 0
+    },
+    "voicenotes.html": { 
+      type: "Tool", 
+      title: "🎤 Voice Notes",
+      orderCreated: 0,
+      recommendation: 0
+    },
+    "pong.html": { 
+      type: "Game", 
+      title: "🏓 Pong",
+      orderCreated: 18,
+      recommendation: 5
+    },
+    "snakebattle.html": { 
+      type: "Game", 
+      title: "🐍 Snake Battle",
+      orderCreated: 19,
+      recommendation: 4
+    }
+  };
+
+  // Organization functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const organizationMode = document.getElementById('organizationMode');
+    const gamesGrid = document.querySelector('.games-grid');
+    
+    if (organizationMode) {
+      organizationMode.addEventListener('change', function() {
+        organizeGames(this.value);
+      });
+    }
+  });
+
+  function organizeGames(mode) {
+    const gamesGrid = document.querySelector('.games-grid');
+    const gameCards = Array.from(gamesGrid.children);
+    
+    // Add organizing class for smooth transition
+    gamesGrid.classList.add('organizing');
+    
+    setTimeout(() => {
+      let sortedCards = [...gameCards];
+      
+      switch(mode) {
+        case 'orderCreated':
+          sortedCards.sort((a, b) => {
+            const aHref = a.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const bHref = b.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const aOrder = gameCategories[aHref]?.orderCreated || 999;
+            const bOrder = gameCategories[bHref]?.orderCreated || 999;
+            return aOrder - bOrder;
+          });
+          break;
+          
+        case 'type':
+          // Group by type and add dividers
+          const typeOrder = ['Game', 'AI', 'Puzzle Game', 'Tool'];
+          const groupedCards = {};
+          
+          // Group cards by type
+          gameCards.forEach(card => {
+            const href = card.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const type = gameCategories[href]?.type || 'Other';
+            if (!groupedCards[type]) groupedCards[type] = [];
+            groupedCards[type].push(card);
+          });
+          
+          // Create sorted array with dividers
+          sortedCards = [];
+          typeOrder.forEach(type => {
+            if (groupedCards[type] && groupedCards[type].length > 0) {
+              // Add divider
+              const divider = document.createElement('div');
+              divider.className = 'category-divider';
+              divider.textContent = type;
+              sortedCards.push(divider);
+              
+              // Add cards in this category
+              sortedCards.push(...groupedCards[type]);
+            }
+          });
+          break;
+          
+        case 'az':
+          sortedCards.sort((a, b) => {
+            const aTitle = a.querySelector('h3').textContent.trim();
+            const bTitle = b.querySelector('h3').textContent.trim();
+            return aTitle.localeCompare(bTitle);
+          });
+          break;
+          
+        case 'za':
+          sortedCards.sort((a, b) => {
+            const aTitle = a.querySelector('h3').textContent.trim();
+            const bTitle = b.querySelector('h3').textContent.trim();
+            return bTitle.localeCompare(aTitle);
+          });
+          break;
+          
+        case 'recommendation':
+          // Filter and sort by recommendation order
+          const recommendedCards = sortedCards.filter(card => {
+            const href = card.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const rec = gameCategories[href]?.recommendation;
+            return rec && rec > 0;
+          }).sort((a, b) => {
+            const aHref = a.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const bHref = b.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const aRec = gameCategories[aHref]?.recommendation || 999;
+            const bRec = gameCategories[bHref]?.recommendation || 999;
+            return aRec - bRec;
+          });
+          
+          const otherCards = sortedCards.filter(card => {
+            const href = card.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
+            const rec = gameCategories[href]?.recommendation;
+            return !rec || rec === 0;
+          });
+          
+          sortedCards = [...recommendedCards, ...otherCards];
+          break;
+          
+        default: // 'default' - restore original order
+          // No sorting needed for default
+          break;
+      }
+      
+      // Clear and re-append sorted cards
+      gamesGrid.innerHTML = '';
+      sortedCards.forEach((card, index) => {
+        card.style.animationDelay = `${1 + index * 0.1}s`;
+        gamesGrid.appendChild(card);
+      });
+      
+      // Remove organizing class
+      gamesGrid.classList.remove('organizing');
+    }, 300);
+  }
+
+  // Email subscription functionality
+  const subscriptionForm = document.getElementById('subscriptionForm');
+  if (subscriptionForm) {
+    subscriptionForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const email = document.getElementById('subscriberEmail').value.trim();
+      const messageDiv = document.getElementById('subscriptionMessage');
+
+      // Get existing subscriber list from localStorage
+      let subscriberEmails = JSON.parse(localStorage.getItem('allSubscribers') || '[]');
+
+      // Check if email already exists
+      if (subscriberEmails.includes(email)) {
+        messageDiv.style.display = 'block';
+        messageDiv.style.background = 'rgba(255, 255, 0, 0.2)';
+        messageDiv.style.color = '#ffff00';
+        messageDiv.textContent = '⚠️ This email is already subscribed!';
+        return;
+      }
+
+      // Add email to list with timestamp
+      const newSubscription = {
+        email: email,
+        timestamp: new Date().toISOString(),
+        source: 'portfolio'
+      };
+
+      subscriberEmails.push(email);
+      let detailedSubscribers = JSON.parse(localStorage.getItem('detailedSubscribers') || '[]');
+      detailedSubscribers.push(newSubscription);
+
+      localStorage.setItem('allSubscribers', JSON.stringify(subscriberEmails));
+      localStorage.setItem('detailedSubscribers', JSON.stringify(detailedSubscribers));
+
+      // Show success message
+      messageDiv.style.display = 'block';
+      messageDiv.style.background = 'rgba(0, 255, 0, 0.2)';
+      messageDiv.style.color = '#00ff00';
+      messageDiv.textContent = '✅ Successfully subscribed! You will recieve regular updates about new content now. Stay tuned!';
+
+      // Clear form
+      document.getElementById('subscriberEmail').value = '';
+
+      // Hide message after 3 seconds
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 3000);
+    });
+  }
+</script>
+</body>
+</html>
