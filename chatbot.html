@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatbot 2.6 🤖</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: #0f0;
+      padding: 20px;
+      min-height: 100vh;
+      margin: 0;
+    }
+    
+    .back-button {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .back-button button {
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .back-button button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+    }
+    
+    h1 {
+      text-align: center;
+      color: #4ecdc4;
+      margin-bottom: 30px;
+    }
+    
+    #chatbox {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    #messages {
+      max-height: 400px;
+      overflow-y: auto;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+    
+    .msg {
+      margin: 8px 0;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+    
+    .user {
+      background: rgba(0, 204, 255, 0.2);
+      color: #0cf;
+      margin-left: 20px;
+    }
+    
+    .bot {
+      background: rgba(0, 255, 0, 0.2);
+      color: #0f0;
+      margin-right: 20px;
+    }
+    
+    #input-area {
+      display: flex;
+      gap: 10px;
+    }
+    
+    #input {
+      flex: 1;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #0f0;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    
+    #input:focus {
+      outline: none;
+      border-color: #4ecdc4;
+    }
+    
+    #send {
+      padding: 12px 20px;
+      background: linear-gradient(45deg, #0f0, #0c0);
+      border: none;
+      color: #000;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    
+    #send:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0, 255, 0, 0.3);
+    }
+    
+    .credit {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #888;
+      text-align: center;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+    
+    .credit a {
+      color: #4ecdc4;
+      text-decoration: none;
+    }
+    
+    .credit a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="back-button">
+    <button onclick="location.href='index.html'">← Back to Portfolio</button>
+  </div>
+  
+  <h1>🤖 Chatbot 2.6</h1>
+  
+  <div id="chatbox">
+    <div id="messages"></div>
+    <div id="input-area">
+      <input id="input" placeholder="Say something..." />
+      <button id="send">Send</button>
+    </div>
+  </div>
+  
+  <div class="credit">
+    Made by V. GitHub: VS0001, YT: V.Dev500<br>
+    Other games: <a href="index.html">Portfolio with all games</a>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const input = document.getElementById("input");
+      const sendBtn = document.getElementById("send");
+      const messages = document.getElementById("messages");
+
+      let memory = {
+        name: null,
+        favoriteColor: null,
+        currentGame: null,
+        lastAction: null
+      };
+
+      let awaiting = {
+        name: false,
+        color: false,
+        game: false
+      };
+
+      const randomize = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+      const keywordAliases = {
+
+      };
+
+      const keywordResponses = {
+        
+        sure: ["Umm... What are you saying yes too? I sorta forgot."],
+        lol: ["lol right back at you"],
+        yeah: ["Change of topic. You want to play rock paper scissors? Just ask me to play rock paper scissors."],
+        "you suck": ["Not that bad. I'm still decent right?"],
+        weather: ["I don't know the weather, but it's always sunny in my hard drive!"],
+        good: ["Glad to hear it."],
+        "how's it going":["Pretty good, actually."],
+        "hows it going": ["Pretty good actually."],
+        what: ["What's what?"],
+        bro: ["Wassup?"],
+        bruh: ["It's a work in progress. Don't bruh me."],
+        ha: ["Hey! What are you laughing about?! *offended face*"],
+        hey: ["hello"],
+        yo: ["Hello! How's it going?"],
+        howdy: ["hello"],
+        sup: ["The sky.", "The roof.", "A cloud."],
+        goodbye: ["Bye!", "Cya!"],
+        cya: ["Come back soon!", "Bye!"],
+        nice: ["Thanks!", "Pretty neat, huh?"],
+        "good job": ["My pleasure!", "Thanks!"],
+        idiot: ["I'm sorry to hear that. What can I fix?"],
+        wow: ["I know! I'm amazing! All credit to V, who made me. Check out his YT, V.dev500!"],
+        hi: ["Hi! Ask me to play rock paper scissors, ask me some math, request me to crack a joke, or whatever you heart desires!"],
+        hello: ["Hey there!", "Hi! 👋", "Howdy!", "Yo!", "Greetings!"],
+        bye: ["Goodbye!", "See you!", "Later!", "Take care!", "Catch you later!"],
+        joke: [
+          "Why don't scientists trust atoms? Because they make up everything.",
+          "Why did the scarecrow win an award? Because he was outstanding in his field.",
+          "Why don't skeletons fight each other? They don't have the guts.",
+          "Why did the bicycle fall over? It was two-tired.",
+          "How does a penguin build its house? Igloos it together.",
+          "What do you call fake spaghetti? An impasta.",
+          "Why did the math book look sad? Because it had too many problems.",
+          "I'm reading a book about anti-gravity. It's impossible to put down.",
+          "What do you get if you cross a snowman and a vampire? Frostbite.",
+          "Why don't some couples go to the gym? Because some relationships don't work out.",
+          "Why did the golfer bring two pairs of pants? In case he got a hole in one.",
+          "What do you call cheese that isn't yours? Nacho cheese.",
+          "Why did the cookie go to the hospital? Because it felt crummy.",
+          "Why did the coffee file a police report? It got mugged.",
+          "How does a train eat? It goes chew chew.",
+          "Why did the tomato turn red? Because it saw the salad dressing.",
+          "Why did the can crusher quit his job? Because it was soda pressing.",
+          "I would avoid the sushi if I were you. It's a little fishy.",
+          "I told my friend she was drawing her eyebrows too high. She looked surprised.",
+          "I tried to catch fog yesterday. Mist.",
+          "What do you call a bear with no teeth? A gummy bear.",
+          "Parallel lines have so much in common. It's a shame they'll never meet.",
+          "Why don't crabs give to charity? Because they're shellfish.",
+          "Why did the man put his money in the freezer? He wanted cold hard cash.",
+          "What's orange and sounds like a parrot? A carrot.",
+          "What do you call a pile of cats? A meowtain.",
+          "How do you organize a space party? You planet.",
+          "What do you get when you cross a fish and an elephant? Swimming trunks.",
+          "Why did the banana go to the doctor? Because it wasn't peeling well.",
+          "Why can't your nose be 12 inches long? Because then it would be a foot.",
+          "What do elves learn in school? The elf-abet.",
+          "What has ears but cannot hear? A cornfield.",
+          "Why was the stadium so cool? It was filled with fans.",
+          "What's brown and sticky? A stick.",
+          "Why did the chicken join a band? Because it had the drumsticks.",
+          "What do you call a dog magician? A labracadabrador.",
+          "Why are ghosts such bad liars? Because they are too transparent.",
+          "How do cows stay up to date? They read the moos-paper.",
+          "What's a skeleton's favorite instrument? The trom-bone.",
+          "Why did the computer go to art school? To learn how to draw its windows.",
+          "Why was the broom late? It swept in.",
+          "How do bees brush their hair? With honeycombs.",
+          "What do you call a lazy kangaroo? A pouch potato.",
+          "What do clouds wear under their clothes? Thunderwear.",
+          "Why don't eggs tell jokes? They'd crack each other up.",
+          "How does the moon cut his hair? Eclipse it.",
+          "What do you get from a pampered cow? Spoiled milk.",
+          "Why was the computer cold? It left its Windows open.",
+          "Why did the grape stop in the middle of the road? It ran out of juice.",
+          "What do you call two birds in love? Tweethearts.",
+          "Why don't robots get scared? Because they have nerves of steel!",
+          "Why did the bot cross the road? To debug the chicken 🐔.",
+          "Why do programmers love dark mode? Because light attracts bugs!",
+          "I'm reading a book on anti-gravity. It's impossible to put down!",
+          "Why don't seagulls fly over the bay? Because then they'd be bagels.",
+          "What do you call a snowman with a six-pack? An abdominal snowman.",
+          "Why did the mushroom go to the party? Because he was a fungi.",
+          "Why couldn't the leopard play hide and seek? Because he was always spotted.",
+          "What kind of tree fits in your hand? A palm tree.",
+          "How do you make a tissue dance? Put a little boogie in it.",
+          "Why did the cow win an award? Because she was outstanding in her field.",
+          "What do you get when you cross a duck with a firework? A firequacker.",
+          "What did one wall say to the other wall? I'll meet you at the corner.",
+          "Why was the calendar always tired? It had too many dates.",
+          "What's a cat's favorite color? Purr-ple.",
+          "Why do fish live in saltwater? Because pepper makes them sneeze.",
+          "How do you stop a bull from charging? Cancel its credit card.",
+          "Why was the math teacher suspicious of prime numbers? They couldn't be divided.",
+          "What did the ocean say to the beach? Nothing, it just waved.",
+          "What kind of shoes do ninjas wear? Sneakers.",
+          "Why was the cookie sad? Because its mom was a wafer too long.",
+          "What do you call a sleeping bull? A bulldozer.",
+          "What do you call a fish with no eyes? Fsh.",
+          "Why was the belt arrested? For holding up a pair of pants.",
+          "What do you call a dinosaur with an extensive vocabulary? A thesaurus.",
+          "Why did the chicken go to the séance? To talk to the other side.",
+          "Why are elevator jokes so good? They work on many levels.",
+          "Why do melons get married? Because they cantaloupe.",
+          "What kind of key opens a banana? A monkey.",
+          "Why don't oysters share their pearls? Because they're shellfish.",
+          "What do you call a factory that makes okay products? A satisfactory.",
+          "Why did the barber win the race? Because he knew all the shortcuts.",
+          "What do you call a cow with no legs? Ground beef.",
+          "What do you call a boomerang that doesn't come back? A stick.",
+          "What do you get when you drop a piano on an army base? A flat major.",
+          "Why couldn't the pony sing? It was a little hoarse.",
+          "What did the big flower say to the little flower? Hi, bud.",
+          "Why do pancakes always win at baseball? Because they have the best batter.",
+          "What do you get when you cross a vampire and a snowman? Frostbite.",
+          "What did the grape say when it got stepped on? Nothing, it just let out a little wine.",
+          "Why did the man run around his bed? Because he was trying to catch up on sleep.",
+          "Why can't you give Elsa a balloon? Because she will let it go.",
+          "What's a frog's favorite candy? Lollihops.",
+          "What's the best way to watch a fly fishing tournament? Live stream.",
+          "How do you get a squirrel to like you? Act like a nut.",
+          "Why did the student eat his homework? Because the teacher said it was a piece of cake.",
+          "Why did the teddy bear not want dessert? Because it was stuffed.",
+          "What did the janitor say when he jumped out of the closet? Supplies!",
+          "What did one plate say to the other? Lunch is on me.",
+          "Why don't vampires go to barbecues? They don't like steak.",
+          "What's the hardest part about skydiving? The ground.",
+          "What did the duck say after buying lipstick? Put it on my bill.",
+          "Why did the banker switch careers? He lost interest.",
+          "What kind of dog loves indulging in science? A lab.",
+          "Why did the light bulb fail school? Because it wasn't too bright."
+        ],
+        "how are you": ["I'm functioning within normal parameters 🤖", "All systems go!", "Feeling electric today!"],
+        "who are you": ["I'm Chatbot 2.6, your helpful bot buddy made by V!"],
+        "what are you": ["I'm a JavaScript-powered chatbot. Not sentient... yet 😅"],
+        name: () => {
+          if (memory.name) return `You told me your name is ${memory.name}. Want to update it?`;
+          awaiting.name = true;
+          return "What should I call you?";
+        },
+        color: () => {
+          if (memory.favoriteColor) return `Your favorite color is ${memory.favoriteColor}. Want to change it?`;
+          awaiting.color = true;
+          return "What's your favorite color?";
+        },
+        game: ["Want to play Rock, Paper, Scissors?", "Say 'rock paper scissors' to start a game! Or try playing one of V's other projects, Space Invaders at the portfolio! We also have a clicker game, 3d game, exploration adventure, tetris, brick breaker, snake classic, flappy bird, all linked through the portfolio. Try it out!"],
+        "rock paper scissors": () => {
+          memory.currentGame = "rps";
+          awaiting.game = true;
+          memory.lastAction = "rps";
+          return "Okay, choose rock, paper, or scissors!";
+        },
+        another: () => {
+          if (memory.lastAction === "joke") {
+            return randomize(keywordResponses.joke);
+          }
+          if (memory.lastAction === "rps") {
+            memory.currentGame = "rps";
+            awaiting.game = true;
+            return "Ready for a rematch! Choose rock, paper, or scissors!";
+          }
+          return "Another what? 🤔";
+        },
+        time: () => new Date().toLocaleTimeString(),
+        date: () => new Date().toDateString(),
+      };
+
+      const getRPSResult = (user, bot) => {
+        if (user === bot) return "It's a tie!";
+        if ((user === "rock" && bot === "scissors") || (user === "paper" && bot === "rock") || (user === "scissors" && bot === "paper")) return "You win!";
+        return "I win!";
+      };
+
+      const evaluateMath = (expr) => {
+        try {
+          const result = Function('"use strict"; return (' + expr + ')')();
+          return `That comes out to ${result}`;
+        } catch {
+          return null;
+        }
+      };
+
+      const displayMessage = (text, sender = "bot") => {
+        const msg = document.createElement("div");
+        msg.className = `msg ${sender}`;
+        msg.textContent = text;
+        messages.appendChild(msg);
+        messages.scrollTop = messages.scrollHeight;
+      };
+
+      const processInput = () => {
+        const userInput = input.value.trim();
+        if (!userInput) return;
+        displayMessage(userInput, "user");
+        input.value = "";
+        const cleaned = userInput.toLowerCase().replace(/[!?.,]/g, "");
+
+        // Aliases support
+        for (const alias in keywordAliases) {
+          if (cleaned.includes(alias)) {
+            cleaned.concat(" " + keywordAliases[alias]);
+          }
+        }
+
+        if (awaiting.name) {
+          memory.name = userInput;
+          awaiting.name = false;
+          return setTimeout(() => displayMessage(`Nice to meet you, ${userInput}!`, "bot"), 300);
+        }
+
+        if (awaiting.color) {
+          memory.favoriteColor = userInput;
+          awaiting.color = false;
+          return setTimeout(() => displayMessage(`Got it! ${userInput} is now your favorite color.`, "bot"), 300);
+        }
+
+        if (awaiting.game && memory.currentGame === "rps") {
+          const userChoice = cleaned;
+          const botChoice = randomize(["rock", "paper", "scissors"]);
+          awaiting.game = false;
+          memory.lastAction = "rps";
+          return setTimeout(() => displayMessage(`I chose ${botChoice}. ${getRPSResult(userChoice, botChoice)}`, "bot"), 300);
+        }
+
+        // Try math solving
+        const mathResponse = evaluateMath(cleaned);
+        if (mathResponse) {
+          memory.lastAction = "math";
+          return setTimeout(() => displayMessage(mathResponse, "bot"), 300);
+        }
+
+        // Exact matches
+        for (const keyword in keywordResponses) {
+          if (cleaned.includes(keyword)) {
+            const r = keywordResponses[keyword];
+            const response = typeof r === "function" ? r() : randomize(r);
+            memory.lastAction = keyword;
+            return setTimeout(() => displayMessage(response, "bot"), 300);
+          }
+        }
+
+        displayMessage("I'm not sure how to respond to that 😅. Try asking me something else!", "bot");
+      };
+
+      sendBtn.addEventListener("click", processInput);
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") processInput();
+      });
+
+      displayMessage("Hi! I'm Chatbot 2.6. Ask me anything, or just say hi!", "bot");
+    });
+  </script>
+</body>
+</html>
