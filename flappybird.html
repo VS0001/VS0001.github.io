@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fluffy Fluff Fluff Fluffer ☁️</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: linear-gradient(45deg, #990000, #995500, #999900, #009900, #000099, #330055, #660099);
+      background-size: 600% 100%;
+      animation: rainbowShift 12s linear infinite;
+      margin: 0;
+    }
+    
+    @keyframes rainbowShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 1.2em;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #menu, #scoreBoard {
+      font-size: 1.2em;
+    }
+
+    canvas {
+      display: none;
+      background: linear-gradient(45deg, #990000, #995500, #999900, #009900, #000099, #330055, #660099);
+      background-size: 600% 100%;
+      animation: rainbowShift 12s linear infinite;
+      border: 5px solid #333;
+      border-radius: 12px;
+      margin: 20px auto;
+    }
+  </style>
+</head>
+<body>
+  <audio id="bgMusic" autoplay loop>
+    <source src="backgroundmusic.wav" type="audio/wav" />
+
+  </audio>
+  <h1>Fluffy Fluff Fluff Fluffer ☁️</h1>
+
+  <div id="menu">
+    <p>Choose difficulty:</p>
+    <button onclick="startGame('easy')">🐣 Easy</button>
+    <button onclick="startGame('medium')">🪶 Medium</button>
+    <button onclick="startGame('hard')">🔥 Hard</button>
+    <p>🎖️ Best Score: <span id="bestScore">0</span></p>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #333;">
+      <h3>🎮 <a href="index.html"><button>← Back to Portfolio</button></a>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div id="scoreBoard" style="display: none;">Score: 0</div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+  <audio id="bgMusic" loop autoplay>
+    <source src="backgroundmusic.wav" type="audio/wav">
+    Your browser does not support audio.
+  </audio>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreBoard = document.getElementById("scoreBoard");
+    const menu = document.getElementById("menu");
+    const bestScoreEl = document.getElementById("bestScore");
+    const bgMusic = document.getElementById("bgMusic");
+
+    let bestScore = localStorage.getItem("flappyBestScore") || 0;
+    bestScoreEl.textContent = bestScore;
+
+    let gravity, flapStrength, pipeGap, pipeSpeed, constantVelocity = false, extraVelocity = 0;
+
+    let birdX = 80;
+    let birdY = 200;
+    let birdRadius = 15;
+    let velocity = 0;
+
+    let pipes = [];
+    let score = 0;
+    let frame = 0;
+    let gameOver = false;
+
+    function startGame(difficulty) {
+      // Set difficulty
+      if (difficulty === "easy") {
+        gravity = 0.3;
+        flapStrength = -5;
+        pipeGap = 150;
+        pipeSpeed = 2;
+        constantVelocity = false;
+        extraVelocity = 0;
+      } else if (difficulty === "medium") {
+        gravity = 0.5;
+        flapStrength = -6;
+        pipeGap = 130;
+        pipeSpeed = 3;
+        constantVelocity = false;
+        extraVelocity = 0;
+      } else if (difficulty === "hard") {
+        gravity = 0.6;
+        flapStrength = -8;
+        pipeGap = 110;
+        pipeSpeed = 5;
+        constantVelocity = true;
+        extraVelocity = 0;
+      }
+
+      pipes = [];
+      birdY = 200;
+      velocity = 0;
+      score = 0;
+      frame = 0;
+      gameOver = false;
+
+      menu.style.display = "none";
+      canvas.style.display = "block";
+      scoreBoard.style.display = "block";
+      scoreBoard.textContent = "Score: 0";
+
+      document.addEventListener("keydown", flapHandler);
+      requestAnimationFrame(gameLoop);
+
+    }
+    // Also allow clicking/tapping to flap
+    canvas.addEventListener("click", handleInput);
+    canvas.addEventListener("touchstart", handleInput);
+
+
+    function flapHandler() {
+      if (!gameOver) {
+        velocity = flapStrength;
+      } else {
+        location.reload(); // Restart
+      }
+    }
+
+    function createPipe() {
+      const topHeight = Math.random() * 250 + 50;
+      pipes.push({
+        x: canvas.width,
+        top: topHeight,
+        bottom: topHeight + pipeGap,
+        scored: false
+      });
+    }
+
+    function isColliding(pipe) {
+      return (
+        birdX + birdRadius > pipe.x &&
+        birdX - birdRadius < pipe.x + 60 &&
+        (birdY - birdRadius < pipe.top || birdY + birdRadius > pipe.bottom)
+      ) || birdY + birdRadius >= canvas.height || birdY - birdRadius <= 0;
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      velocity += gravity;
+      birdY += velocity;
+
+      if (frame % 90 === 0) createPipe();
+      frame++;
+
+      for (let pipe of pipes) {
+        pipe.x -= pipeSpeed;
+
+        if (!pipe.scored && pipe.x + 60 < birdX) {
+          score++;
+          pipe.scored = true;
+          scoreBoard.textContent = "Score: " + score;
+        }
+
+        if (isColliding(pipe)) {
+          gameOver = true;
+          scoreBoard.textContent = "💀 Game Over! Score: " + score;
+          if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem("flappyBestScore", bestScore);
+          }
+        }
+      }
+
+      pipes = pipes.filter(p => p.x + 60 > 0);
+    }
+    function handleInput() {
+      flapHandler(); // Trigger the same behavior as a key press
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw fluffy cloud ☁️ emoji
+      ctx.font = "32px serif";
+      ctx.fillText("☁️", birdX - 16, birdY + 10);
+
+      for (let pipe of pipes) {
+        // Draw black rectangles with spikes
+        ctx.fillStyle = "black";
+        ctx.fillRect(pipe.x, 0, 60, pipe.top);
+        ctx.fillRect(pipe.x, pipe.bottom, 60, canvas.height - pipe.bottom);
+        
+        // Draw 10 tiny spikes on top pipe
+        ctx.fillStyle = "#666";
+        for (let i = 0; i < 10; i++) {
+          const spikeX = pipe.x + (i * 6) + 3;
+          ctx.beginPath();
+          ctx.moveTo(spikeX, pipe.top);
+          ctx.lineTo(spikeX - 2, pipe.top - 4);
+          ctx.lineTo(spikeX + 2, pipe.top - 4);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Draw 10 tiny spikes on bottom pipe
+        for (let i = 0; i < 10; i++) {
+          const spikeX = pipe.x + (i * 6) + 3;
+          ctx.beginPath();
+          ctx.moveTo(spikeX, pipe.bottom);
+          ctx.lineTo(spikeX - 2, pipe.bottom + 4);
+          ctx.lineTo(spikeX + 2, pipe.bottom + 4);
+          ctx.closePath();
+          ctx.fill();
+        }
+      }
+
+      if (gameOver) {
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+        ctx.fillStyle = "#fff";
+        ctx.font = "20px sans-serif";
+        ctx.fillText("Press any key to restart", 100, canvas.height / 2);
+      }
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      if (!gameOver) requestAnimationFrame(gameLoop);
+    }
+    // Touchscreen support - available on all devices
+    const touchButton = document.createElement('div');
+    touchButton.innerHTML = '<button id="jumpBtn" style="position: fixed; bottom: 20px; right: 20px; width: 80px; height: 80px; background: rgba(255,255,0,0.8); border: none; border-radius: 50%; color: black; font-weight: bold; font-size: 16px; z-index: 10;">TAP</button>';
+    document.body.appendChild(touchButton);
+
+    document.getElementById('jumpBtn').addEventListener('touchstart', flapHandler);
+    document.getElementById('jumpBtn').addEventListener('click', flapHandler);
+  </script>
+</body>
+</html>
