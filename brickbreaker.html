@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Breakout Boss Battle 🧱</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+    }
+    #menu, #scoreDisplay, #gameOverMsg, #timer {
+      position: absolute;
+      width: 100%;
+      text-align: center;
+      z-index: 10;
+    }
+    #menu {
+      top: 50px;
+    }
+    #scoreDisplay {
+      top: 10px;
+      font-size: 1.2em;
+    }
+    #timer {
+      top: 40px;
+    }
+    #gameOverMsg {
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2em;
+      display: none;
+      color: red;
+    }
+    #touchControls {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 15;
+    }
+    .touch-btn {
+      width: 80px;
+      height: 60px;
+      background: rgba(255,255,255,0.7);
+      border: none;
+      border-radius: 10px;
+      color: black;
+      font-weight: bold;
+      font-size: 18px;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #222;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>Breakout Boss Battle 🧱</h1>
+    <p>Select Difficulty:</p>
+    <button onclick="startGame('easy')">🟢 Easy</button>
+    <button onclick="startGame('medium')">🟡 Medium</button>
+    <button onclick="startGame('hard')">🔴 Hard</button>
+    <p>🎯 High Score: <span id="highScore">0</span></p>
+    <a href="index.html"><button>← Back to Portfolio</button></a>
+  </div>
+  <div id="scoreDisplay">Score: 0</div>
+  <div id="timer">Time Left: 180s</div>
+  <div id="gameOverMsg"></div>
+  <canvas id="gameCanvas"></canvas>
+  
+  <!-- Touchscreen Controls -->
+  <div id="touchControls">
+    <button id="leftBtn" class="touch-btn">←</button>
+    <button id="rightBtn" class="touch-btn">→</button>
+  </div>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let paddle, ball, bricks = [], score = 0, highScore = 0, timer, timeLeft = 240;
+    let rows = 5, cols = 8, brickWidth, brickHeight = 30;
+    let ballSpeed = 4, paddleSpeed = 6;
+    let dx = 4, dy = -4;
+    let mode = 'easy';
+    let gameRunning = false, currentLevel = 1;
+    let boss = null, minions = [], bullets = [], bossHitpoints = 20;
+    let leftPressed = false;
+    let rightPressed = false;
+
+
+    const menu = document.getElementById("menu");
+    const scoreDisplay = document.getElementById("scoreDisplay");
+    const timerDisplay = document.getElementById("timer");
+    const gameOverMsg = document.getElementById("gameOverMsg");
+    const highScoreEl = document.getElementById("highScore");
+
+    highScore = localStorage.getItem("breakoutHigh") || 0;
+    highScoreEl.textContent = highScore;
+
+    document.addEventListener("keydown", e => {
+      if (!gameRunning && gameOverMsg.style.display !== "none") location.reload();
+    });
+
+    function startGame(difficulty) {
+      mode = difficulty;
+
+      if (mode === 'easy') { dx = 6; dy = -6; paddleSpeed = 16; }
+      if (mode === 'medium') { dx = 8; dy = -8; paddleSpeed = 18; }
+      if (mode === 'hard') { dx = 10; dy = -10; paddleSpeed = 22; }
+      gameRunning = true;
+      score = 0;
+      currentLevel = 1;
+      timeLeft = 240;
+      bricks = [];
+      minions = [];
+      bullets = [];
+      boss = null;
+      createPaddle();
+      createBall();
+      createBricks();
+      menu.style.display = 'none';
+      scoreDisplay.textContent = "Score: 0";
+      timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+      gameOverMsg.style.display = 'none';
+      
+      // Show touchscreen controls
+      document.getElementById('touchControls').style.display = 'flex';
+      
+      // Add touchscreen event listeners for all devices
+      document.getElementById('leftBtn').addEventListener('touchstart', () => leftPressed = true);
+      document.getElementById('leftBtn').addEventListener('touchend', () => leftPressed = false);
+      document.getElementById('leftBtn').addEventListener('mousedown', () => leftPressed = true);
+      document.getElementById('leftBtn').addEventListener('mouseup', () => leftPressed = false);
+      
+      document.getElementById('rightBtn').addEventListener('touchstart', () => rightPressed = true);
+      document.getElementById('rightBtn').addEventListener('touchend', () => rightPressed = false);
+      document.getElementById('rightBtn').addEventListener('mousedown', () => rightPressed = true);
+      document.getElementById('rightBtn').addEventListener('mouseup', () => rightPressed = false);
+      
+      // Touch drag to move paddle
+      canvas.addEventListener('touchmove', (e) => {
+        if (gameRunning) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          const touchX = touch.clientX - rect.left;
+          paddle.x = touchX - paddle.width / 2;
+          if (paddle.x < 0) paddle.x = 0;
+          if (paddle.x > canvas.width - paddle.width) paddle.x = canvas.width - paddle.width;
+        }
+      });
+      
+      timer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = `Time Left: ${timeLeft}s`;
+        if (timeLeft <= 0) endGame("⏳ Time's up! You died!");
+      }, 1000);
+      requestAnimationFrame(loop);
+    }
+
+    function createPaddle() {
+      paddle = {
+        x: canvas.width / 2 - 50,
+        y: canvas.height - 30,
+        width: 100,
+        height: 15
+      };
+      document.addEventListener("keydown", e => {
+        if (e.key === "ArrowLeft") leftPressed = true;
+        if (e.key === "ArrowRight") rightPressed = true;
+      });
+
+      document.addEventListener("keyup", e => {
+        if (e.key === "ArrowLeft") leftPressed = false;
+        if (e.key === "ArrowRight") rightPressed = false;
+      });
+
+      // Add drag support for paddle
+      let isDragging = false;
+      
+      canvas.addEventListener('mousedown', (e) => {
+        if (gameRunning) {
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          const mouseY = e.clientY - rect.top;
+          
+          // Check if clicking on paddle area
+          if (mouseY > paddle.y - 20 && mouseY < paddle.y + paddle.height + 20 &&
+              mouseX > paddle.x - 20 && mouseX < paddle.x + paddle.width + 20) {
+            isDragging = true;
+          }
+        }
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (gameRunning && isDragging) {
+          const rect = canvas.getBoundingClientRect();
+          const mouseX = e.clientX - rect.left;
+          paddle.x = mouseX - paddle.width / 2;
+          
+          // Keep paddle in bounds
+          if (paddle.x < 0) paddle.x = 0;
+          if (paddle.x > canvas.width - paddle.width) paddle.x = canvas.width - paddle.width;
+        }
+      });
+
+      canvas.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      canvas.addEventListener('mouseleave', () => {
+        isDragging = false;
+      });
+
+    }
+
+    function createBall() {
+      ball = {
+        x: canvas.width / 2,
+        y: canvas.height - 50,
+        radius: 10
+      };
+    }
+
+    function createBricks() {
+      brickWidth = canvas.width / cols;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          bricks.push({
+            x: c * brickWidth,
+            y: r * brickHeight + 50,
+            hits: currentLevel === 1 ? 1 : currentLevel === 2 ? 2 : 3
+          });
+        }
+      }
+    }
+
+    function drawBricks() {
+      bricks.forEach(b => {
+        ctx.fillStyle = ["#0f0", "#ff0", "#f00"][b.hits - 1];
+        ctx.fillRect(b.x, b.y, brickWidth - 2, brickHeight - 2);
+      });
+    }
+
+    function drawPaddle() {
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+      if (leftPressed) paddle.x -= paddleSpeed;
+      if (rightPressed) paddle.x += paddleSpeed;
+
+    }
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#0ff";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function loop() {
+      if (!gameRunning) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBricks();
+      drawPaddle();
+      drawBall();
+
+      // ball move
+      ball.x += dx;
+      ball.y += dy;
+
+      // Wall collisions
+      if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+        dx = -dx;
+        ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
+      }
+      if (ball.y - ball.radius < 0) {
+        dy = -dy;
+        ball.y = ball.radius;
+      }
+      if (ball.y + ball.radius > canvas.height) endGame("💀 You Died!");
+
+      // Paddle collision with proper bounce physics
+      if (
+        ball.x + ball.radius > paddle.x &&
+        ball.x - ball.radius < paddle.x + paddle.width &&
+        ball.y + ball.radius > paddle.y &&
+        ball.y - ball.radius < paddle.y + paddle.height &&
+        dy > 0
+      ) {
+        dy = -dy;
+        ball.y = paddle.y - ball.radius;
+        
+        // Add angle based on where ball hits paddle
+        const hitPos = (ball.x - paddle.x) / paddle.width;
+        const angle = (hitPos - 0.5) * 2; // -1 to 1
+        dx += angle * 2;
+        
+        // Limit speed
+        const speed = Math.sqrt(dx * dx + dy * dy);
+        if (speed > 12) {
+          dx = (dx / speed) * 12;
+          dy = (dy / speed) * 12;
+        }
+      }
+
+      bricks.forEach((b, i) => {
+        if (
+          ball.x > b.x &&
+          ball.x < b.x + brickWidth &&
+          ball.y > b.y &&
+          ball.y < b.y + brickHeight
+        ) {
+          dy = -dy;
+          b.hits--;
+          if (b.hits <= 0) bricks.splice(i, 1);
+          score += 10;
+          scoreDisplay.textContent = "Score: " + score;
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("breakoutHigh", highScore);
+            highScoreEl.textContent = highScore;
+          }
+        }
+      });
+
+      if (bricks.length === 0 && currentLevel === 1) {
+        currentLevel = 2;
+        rows = 4;
+        createBricks();
+      } else if (bricks.length === 0 && currentLevel === 2) {
+        currentLevel = 3;
+        rows = 3;
+        createBricks();
+      } else if (bricks.length === 0 && currentLevel === 3 && !boss) {
+        spawnBoss();
+      }
+
+      if (boss) drawBoss();
+      requestAnimationFrame(loop);
+    }
+
+    function spawnBoss() {
+      boss = {
+        x: canvas.width / 2 - 50,
+        y: 100,
+        width: 100,
+        height: 30,
+        direction: 1,
+        hp: bossHitpoints,
+        lastShot: Date.now()
+      };
+      gameOverMsg.style.display = 'block';
+      gameOverMsg.textContent = "👾 BOSS BATTLE!";
+      setTimeout(() => { gameOverMsg.style.display = 'none'; }, 5000);
+    }
+
+    function drawBoss() {
+      boss.x += boss.direction * 3;
+      if (boss.x <= 0 || boss.x + boss.width >= canvas.width) boss.direction *= -1;
+      ctx.fillStyle = "#f0f";
+      ctx.fillRect(boss.x, boss.y, boss.width, boss.height);
+    }
+
+    function endGame(msg) {
+      clearInterval(timer);
+      gameOverMsg.style.display = 'block';
+      gameOverMsg.textContent = msg;
+      gameRunning = false;
+    }
+  </script>
+</body>
+</html>
