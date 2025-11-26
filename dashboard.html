@@ -1,0 +1,100 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emoji Space Invaders - Dashboard</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    h2 {
+      margin-top: 20px;
+      margin-bottom: 15px;
+    }
+    a, button {
+      color: #00ffff;
+      font-size: 18px;
+      text-decoration: none;
+      margin: 8px 0; /* vertical margin only */
+      padding: 10px 20px;
+      background: #222;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-block; /* ensures vertical stacking */
+      width: 220px; /* consistent button width */
+    }
+    a:hover, button:hover {
+      text-decoration: underline;
+      background: #444;
+    }
+    /* Hide dashboard by default */
+    #dashboard {
+      display: none;
+    }
+    /* Show dashboard when active */
+    #dashboard.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="dashboard">
+    <h1>🚀 Emoji Space Invaders</h1>
+    <h3>Spacebar to shoot, arrow keys to move</h3>
+
+    <h2>Select Difficulty Mode</h2>
+    <button onclick="setMode('easy', 5, 4, 0.5)">Easy (5 lives, slow bullets)</button>
+    <button onclick="setMode('normal', 3, 8, 1)">Normal (3 lives, normal bullets)</button>
+    <button onclick="setMode('hard', 1, 12, 1.5)">Hard (1 life, fast bullets, aliens shoot 1.5x)</button>
+
+    <a href="shop.html">🛍️ Visit the Shop</a>
+    <a href="wheel.html">🎰 Spin the Wheel!</a>
+    <a href="scoreboard.html">📊 View Scoreboard</a>
+    <a href="index.html">← Back to Portfolio</a>
+    
+    <h2>Audio Settings</h2>
+    <button id="audioToggle">🔊 Audio: ON</button>
+  </div>
+
+  
+
+  <script>
+    // Show dashboard immediately
+    document.getElementById('dashboard').classList.add('active');
+
+    // Audio disabled - no audio elements or playback
+    const audioToggle = document.getElementById('audioToggle');
+    
+    // Set audio toggle to show disabled state
+    audioToggle.textContent = '🔇 Audio: DISABLED';
+    audioToggle.onclick = () => {
+      alert('Audio has been disabled in this version.');
+    };
+
+    function setMode(mode, lives, bulletSpeed, alienShootMultiplier) {
+      localStorage.setItem('gameTimeStart', Date.now().toString());
+      localStorage.setItem('gameMode', mode);
+      const extraLifeBonus = localStorage.getItem("extraLifeBonus") === "true";
+      localStorage.setItem('playerLives', lives + (extraLifeBonus ? 1 : 0));
+      localStorage.setItem('bulletSpeed', bulletSpeed);
+      localStorage.setItem('alienShootMultiplier', alienShootMultiplier);
+      localStorage.setItem('playerScore', '0');
+      window.location.href = 'level1.html';
+    }
+  </script>
+</body>
+</html>
