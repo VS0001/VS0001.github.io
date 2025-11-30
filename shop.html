@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Power-Up Shop</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      padding: 2em;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 1em;
+    }
+    .section {
+      margin: 2em 0;
+    }
+    button {
+      font-size: 16px;
+      margin: 10px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #222;
+      color: white;
+    }
+    button:disabled {
+      background: #555;
+      cursor: default;
+    }
+    .owned {
+      color: lime;
+    }
+    .equipped {
+      border: 2px solid cyan;
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 Power-Up Shop</h1>
+  <div id="scoreDisplay">Loading...</div>
+
+  <div class="section">
+    <h2>Avatars (10 coins each)</h2>
+    <div id="avatarOptions"></div>
+  </div>
+
+  <div class="section">
+    <h2>Currency</h2>
+    <div id="diamondDisplay" style="margin: 1em 0; font-size: 20px;">💎 Diamonds: 0</div>
+    <button id="tradeDiamonds">Trade 1 Diamond for 100 Coins</button>
+  </div>
+
+  <div class="section">
+    <h2>Ability Descriptions</h2>
+    <ul style="text-align: left; max-width: 600px; margin: 0 auto;">
+      <li><strong>Double Points:</strong> Earn 2x coins from destroying aliens.</li>
+      <li><strong>Triple Shot:</strong> Fire 3 bullets at once in a spread pattern.</li>
+      <li><strong>Homing Missile:</strong> Every 5th shot is a homing missile that hones in on the highest healthed foe nearby.</li>
+      <li><strong>Fancy Homing Missile:</strong> A more potent version of the Homing Missile, deals 2x damage and has 2x speed.</li>
+      <li><strong>X2 Damage:</strong> All your bullets deal 2x damage. Costs 100,000 coins AND 50 diamonds.</li>
+      <li><strong>Extra Life Bonus:</strong> Grants 1 extra life in all modes.</li>
+      <li><strong>Regeneration:</strong> Heals 1 life per level completed if one was lost.</li>
+      <li><strong>Minion Clones:</strong> Spawns 3 minion allies that follow and shoot enemies. Usable once per level. Minions have upgradeable health (5,000–7,500 HP) and fire rate (15,000 points). Press <code>M</code> to spawn.</li>
+      <li><strong>Smoke Bomb:</strong> Lasts 10 seconds with a 20s cooldown. Prevents aiming enemies (Cannons, aiming bosses) from shooting at you. Creates a gray visual effect around player. Press <code>W</code> to activate.</li>
+      <li><strong>Grace Period:</strong> Grants invincibility for the first 5 seconds of every round.</li>
+      <li><strong>Time Freeze:</strong> Freezes all enemy movement and attacks for 10 seconds. 90s cooldown. Press <code>E</code> to activate.</li>
+      <li><strong>Star Shooter:</strong> Replaces your bullets with fancy star graphics for a stylish look.</li>
+      <li><strong>Reward Scale-Up:</strong> Non-boss aliens drop coins equal to their starting health (e.g., 3 HP alien drops 3 coins base, 6 with Double Points).</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2>Abilities</h2>
+    <button id="buyDouble">Double Points (500)</button>
+    <span id="doubleStatus"></span>
+    <button id="toggleDouble" style="display:none;">Toggle OFF</button><br>
+    <button id="buyTriple">Triple Shot (1500)</button>
+    <span id="tripleStatus"></span>
+    <button id="toggleTriple" style="display:none;">Toggle OFF</button><br>
+    <button id="buyHoming">Homing Missile (2000) - 7sec cooldown</button>
+    <span id="homingStatus"></span>
+    <button id="toggleHoming" style="display:none;">Toggle OFF</button><br>
+    <button id="buyFancyHoming">Fancy Homing Missile (15000) - 2x Damage, 2x Speed</button>
+    <span id="fancyHomingStatus"></span>
+    <button id="toggleFancyHoming" style="display:none;">Toggle OFF</button><br>
+    <button id="buyExtraLife">Extra Life Bonus (50,000)</button>
+    <span id="extraLifeStatus"></span>
+    <button id="toggleExtraLife" style="display:none;">Toggle OFF</button><br>
+    <button id="buyRegeneration">Regeneration (50,000)</button>
+    <span id="regenerationStatus"></span>
+    <button id="toggleRegeneration" style="display:none;">Toggle OFF</button><br>
+    <button id="buyMinions">Minion Clones (40,000)</button>
+    <span id="minionsStatus"></span>
+    <button id="toggleMinions" style="display:none;">Toggle OFF</button><br>
+    <button id="buyMinionHealth">Minion Health Upgrade</button>
+    <span id="minionHealthStatus"></span>
+    <button id="toggleMinionHealth" style="display:none;">Toggle OFF</button><br>
+    <button id="buyMinionFireRate">Minion Fire Rate Upgrade (15,000)</button>
+    <span id="minionFireRateStatus"></span>
+    <button id="toggleMinionFireRate" style="display:none;">Toggle OFF</button><br>
+    <button id="buySmokeBomb">Smoke Bomb (10,000)</button>
+    <span id="smokeBombStatus"></span>
+    <button id="toggleSmokeBomb" style="display:none;">Toggle OFF</button><br>
+    <button id="buyGracePeriod">Grace Period (25,000)</button>
+    <span id="gracePeriodStatus"></span>
+    <button id="toggleGracePeriod" style="display:none;">Toggle OFF</button><br>
+    <button id="buyTimeFreeze">Time Freeze (50,000)</button>
+    <span id="timeFreezeStatus"></span>
+    <button id="toggleTimeFreeze" style="display:none;">Toggle OFF</button><br>
+    <button id="buyStarShooter">Star Shooter (5,000)</button>
+    <span id="starShooterStatus"></span>
+    <button id="toggleStarShooter" style="display:none;">Toggle OFF</button><br>
+    <button id="buyRewardScaleUp">Reward Scale-Up (15,000)</button>
+    <span id="rewardScaleUpStatus"></span>
+    <button id="toggleRewardScaleUp" style="display:none;">Toggle OFF</button><br>
+    <button id="buyX2Damage">X2 Damage (100,000 coins + 50 diamonds)</button>
+    <span id="x2DamageStatus"></span>
+    <button id="toggleX2Damage" style="display:none;">Toggle OFF</button>
+  </div>
+
+  <div class="section">
+    <h2>Global Toggle Controls</h2>
+    <button id="toggleAllOff" style="background: #cc0000; padding: 15px 30px;">Turn OFF All Purchased Buffs</button>
+    <button id="toggleAllOn" style="background: #00cc00; padding: 15px 30px;">Turn ON All Previously Purchased Buffs</button>
+  </div>
+
+  <div class="section">
+    <h2>Trail Effects (100 each)</h2>
+    <button onclick="buyTrail('red')">Red</button>
+    <button onclick="buyTrail('green')">Green</button>
+    <button onclick="buyTrail('blue')">Blue</button>
+    <div id="trailStatus"></div>
+  </div>
+
+  <div class="section">
+    <h2>Speed Boost</h2>
+    <button id="buySpeed">Upgrade Speed</button>
+    <div id="speedStatus"></div>
+  </div>
+
+  <a href="dashboard.html" style="display: block; margin-top: 2em; color: cyan;">← Back to Dashboard</a>
+
+  <script>
+    const avatars = ["🚀", "🛸", "🛰️", "✈️", "🛥️", "🚁", "🛩️", "🪐", "⭐", "🌟", "💫", "🌙", "🚂", "🚗", "🚙", "🚕", "🏎️", "🚓", "🚑", "🚒", "🚐", "🚚", "🚛", "🚜", "🏍️", "🛵", "🚲", "🛴", "🚠", "🚟", "🚃", "🚋", "🚝", "🚄"];
+    const avatarOptions = document.getElementById("avatarOptions");
+    const totalScore = () => parseInt(localStorage.getItem("totalScore") || "0");
+
+    function spend(points) {
+      const score = totalScore();
+      if (score < points) return false;
+      localStorage.setItem("totalScore", score - points);
+      updateUI();
+      return true;
+    }
+
+    function setupToggle(itemName, btnId, statusId, owned) {
+      const isActive = localStorage.getItem(itemName + "Active") !== "false";
+      const toggleBtn = document.getElementById(btnId);
+
+      if (owned) {
+        toggleBtn.style.display = "inline-block";
+        toggleBtn.textContent = isActive ? "Toggle OFF" : "Toggle ON";
+        toggleBtn.style.background = isActive ? "#cc0000" : "#00cc00";
+        toggleBtn.onclick = () => {
+          const currentActive = localStorage.getItem(itemName + "Active") !== "false";
+          const newActiveState = !currentActive;
+          localStorage.setItem(itemName + "Active", newActiveState.toString());
+
+          // For level-based upgrades (fireRateLevel, minionHealthLevel), ONLY change active state
+          // Never modify the actual level value
+          if (itemName !== "fireRateLevel" && itemName !== "minionHealthLevel") {
+            // For boolean upgrades, toggle the main value too
+            localStorage.setItem(itemName, newActiveState.toString());
+          }
+          updateUI();
+        };
+      } else {
+        toggleBtn.style.display = "none";
+      }
+    }
+
+    function updateUI() {
+      document.getElementById("scoreDisplay").textContent = `Total Coins: ${totalScore()}`;
+      const diamonds = parseInt(localStorage.getItem("playerDiamonds") || "0");
+      document.getElementById("diamondDisplay").textContent = `💎 Diamonds: ${diamonds}`;
+
+      // Avatar section
+      avatarOptions.innerHTML = "";
+      const ownedAvatars = JSON.parse(localStorage.getItem("ownedAvatars") || "[]");
+      const equipped = localStorage.getItem("avatarEmoji") || "🚀";
+      avatars.forEach(emoji => {
+        const btn = document.createElement("button");
+        btn.textContent = emoji;
+        if (ownedAvatars.includes(emoji)) {
+          btn.className = (emoji === equipped ? "equipped" : "");
+          btn.onclick = () => {
+            localStorage.setItem("avatarEmoji", emoji);
+            updateUI();
+          };
+        } else {
+          btn.onclick = () => {
+            if (spend(10)) {
+              ownedAvatars.push(emoji);
+              localStorage.setItem("ownedAvatars", JSON.stringify(ownedAvatars));
+              localStorage.setItem("avatarEmoji", emoji);
+              updateUI();
+            }
+          };
+        }
+        avatarOptions.appendChild(btn);
+      });
+
+      // Status toggles
+      const doublePointsOwned = localStorage.getItem("doublePointsOwned") === "true";
+      const doublePoints = localStorage.getItem("doublePoints") === "true";
+      document.getElementById("doubleStatus").textContent = doublePointsOwned ? "✔ Owned" : "";
+      document.getElementById("buyDouble").disabled = doublePointsOwned;
+      document.getElementById("buyDouble").onclick = () => {
+        if (!doublePointsOwned && spend(500)) {
+          localStorage.setItem("doublePoints", "true");
+          localStorage.setItem("doublePointsOwned", "true");
+          localStorage.setItem("doublePointsActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("doublePoints", "toggleDouble", "doubleStatus", doublePointsOwned);
+
+      const tripleOwned = localStorage.getItem("tripleShotOwned") === "true";
+      document.getElementById("tripleStatus").textContent = tripleOwned ? "✔ Owned" : "";
+      document.getElementById("buyTriple").disabled = tripleOwned;
+      document.getElementById("buyTriple").onclick = () => {
+        if (!tripleOwned && spend(1500)) {
+          localStorage.setItem("tripleShot", "true");
+          localStorage.setItem("tripleShotOwned", "true");
+          localStorage.setItem("tripleShotActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("tripleShot", "toggleTriple", "tripleStatus", tripleOwned);
+
+      const homingOwned = localStorage.getItem("homingMissileOwned") === "true";
+      document.getElementById("homingStatus").textContent = homingOwned ? "✔ Owned" : "";
+      document.getElementById("buyHoming").disabled = homingOwned;
+      document.getElementById("buyHoming").onclick = () => {
+        if (!homingOwned && spend(2000)) {
+          localStorage.setItem("homingMissile", "true");
+          localStorage.setItem("homingMissileOwned", "true");
+          localStorage.setItem("homingMissileActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("homingMissile", "toggleHoming", "homingStatus", homingOwned);
+
+      // Fancy Homing Missile
+      const fancyHomingOwned = localStorage.getItem("fancyHomingMissileOwned") === "true";
+      document.getElementById("fancyHomingStatus").textContent = fancyHomingOwned ? "✔ Owned" : "";
+      document.getElementById("buyFancyHoming").disabled = fancyHomingOwned;
+      document.getElementById("buyFancyHoming").onclick = () => {
+        if (!fancyHomingOwned && spend(15000)) {
+          localStorage.setItem("fancyHomingMissile", "true");
+          localStorage.setItem("fancyHomingMissileOwned", "true");
+          localStorage.setItem("fancyHomingMissileActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("fancyHomingMissile", "toggleFancyHoming", "fancyHomingStatus", fancyHomingOwned);
+
+      // Extra Life Bonus
+      const extraLifeOwned = localStorage.getItem("extraLifeBonusOwned") === "true";
+      document.getElementById("extraLifeStatus").textContent = extraLifeOwned ? "✔ Owned" : "";
+      document.getElementById("buyExtraLife").disabled = extraLifeOwned;
+      document.getElementById("buyExtraLife").onclick = () => {
+        if (!extraLifeOwned && spend(50000)) {
+          localStorage.setItem("extraLifeBonus", "true");
+          localStorage.setItem("extraLifeBonusOwned", "true");
+          localStorage.setItem("extraLifeBonusActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("extraLifeBonus", "toggleExtraLife", "extraLifeStatus", extraLifeOwned);
+
+      // Regeneration
+      const regenerationOwned = localStorage.getItem("regenerationOwned") === "true";
+      document.getElementById("regenerationStatus").textContent = regenerationOwned ? "✔ Owned" : "";
+      document.getElementById("buyRegeneration").disabled = regenerationOwned;
+      document.getElementById("buyRegeneration").onclick = () => {
+        if (!regenerationOwned && spend(50000)) {
+          localStorage.setItem("regeneration", "true");
+          localStorage.setItem("regenerationOwned", "true");
+          localStorage.setItem("regenerationActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("regeneration", "toggleRegeneration", "regenerationStatus", regenerationOwned);
+
+      // Minion Clones
+      const minionsOwned = localStorage.getItem("minionClonesOwned") === "true";
+      document.getElementById("minionsStatus").textContent = minionsOwned ? "✔ Owned" : "";
+      document.getElementById("buyMinions").disabled = minionsOwned;
+      document.getElementById("buyMinions").onclick = () => {
+        if (!minionsOwned && spend(40000)) {
+          localStorage.setItem("minionClones", "true");
+          localStorage.setItem("minionClonesOwned", "true");
+          localStorage.setItem("minionClonesActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("minionClones", "toggleMinions", "minionsStatus", minionsOwned);
+
+      // Minion Health Upgrade
+      const minionHealthLevel = parseInt(localStorage.getItem("minionHealthLevel") || "0");
+      const minionHealthActive = localStorage.getItem("minionHealthLevelActive") !== "false";
+      const minionHealthCosts = [5000, 7500];
+      const nextMinionHealthCost = minionHealthLevel < 2 ? minionHealthCosts[minionHealthLevel] : null;
+      document.getElementById("buyMinionHealth").disabled = nextMinionHealthCost === null || !minionsOwned;
+      document.getElementById("buyMinionHealth").textContent = 
+        nextMinionHealthCost === null ? "Minion Health Maxed" : `Minion Health Upgrade (${nextMinionHealthCost})`;
+
+      // Show current level and active status
+      if (minionHealthLevel > 0) {
+        const minionHealthStatusText = minionHealthActive
+          ? `Level: ${minionHealthLevel}/2 (${1 + minionHealthLevel} HP)`
+          : `Level: ${minionHealthLevel}/2 (DISABLED)`;
+        document.getElementById("minionHealthStatus").textContent = minionHealthStatusText;
+      } else {
+        document.getElementById("minionHealthStatus").textContent = minionsOwned ? "Not purchased" : "Requires Minion Clones";
+      }
+
+      document.getElementById("buyMinionHealth").onclick = () => {
+        if (nextMinionHealthCost !== null && minionsOwned && spend(nextMinionHealthCost)) {
+          localStorage.setItem("minionHealthLevel", (minionHealthLevel + 1).toString());
+          localStorage.setItem("minionHealthLevelOwned", "true");
+          localStorage.setItem("minionHealthLevelActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("minionHealthLevel", "toggleMinionHealth", "minionHealthStatus", minionHealthLevel > 0);
+
+      // Minion Fire Rate Upgrade
+      const minionFireRateOwned = localStorage.getItem("minionFireRateUpgradeOwned") === "true";
+      document.getElementById("minionFireRateStatus").textContent = minionFireRateOwned ? "✔ Owned (2x fire rate)" : "Normal fire rate";
+      document.getElementById("buyMinionFireRate").disabled = minionFireRateOwned || !minionsOwned;
+      document.getElementById("buyMinionFireRate").onclick = () => {
+        if (!minionFireRateOwned && minionsOwned && spend(15000)) {
+          localStorage.setItem("minionFireRateUpgrade", "true");
+          localStorage.setItem("minionFireRateUpgradeOwned", "true");
+          localStorage.setItem("minionFireRateUpgradeActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("minionFireRateUpgrade", "toggleMinionFireRate", "minionFireRateStatus", minionFireRateOwned);
+
+      // Smoke Bomb
+      const smokeBombOwned = localStorage.getItem("smokeBombOwned") === "true";
+      document.getElementById("smokeBombStatus").textContent = smokeBombOwned ? "✔ Owned" : "";
+      document.getElementById("buySmokeBomb").disabled = smokeBombOwned;
+      document.getElementById("buySmokeBomb").onclick = () => {
+        if (!smokeBombOwned && spend(10000)) {
+          localStorage.setItem("smokeBomb", "true");
+          localStorage.setItem("smokeBombOwned", "true");
+          localStorage.setItem("smokeBombActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("smokeBomb", "toggleSmokeBomb", "smokeBombStatus", smokeBombOwned);
+
+      // Grace Period
+      const gracePeriodOwned = localStorage.getItem("gracePeriodOwned") === "true";
+      document.getElementById("gracePeriodStatus").textContent = gracePeriodOwned ? "✔ Owned" : "";
+      document.getElementById("buyGracePeriod").disabled = gracePeriodOwned;
+      document.getElementById("buyGracePeriod").onclick = () => {
+        if (!gracePeriodOwned && spend(25000)) {
+          localStorage.setItem("gracePeriod", "true");
+          localStorage.setItem("gracePeriodOwned", "true");
+          localStorage.setItem("gracePeriodActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("gracePeriod", "toggleGracePeriod", "gracePeriodStatus", gracePeriodOwned);
+
+      // Time Freeze
+      const timeFreezeOwned = localStorage.getItem("timeFreezeOwned") === "true";
+      document.getElementById("timeFreezeStatus").textContent = timeFreezeOwned ? "✔ Owned" : "";
+      document.getElementById("buyTimeFreeze").disabled = timeFreezeOwned;
+      document.getElementById("buyTimeFreeze").onclick = () => {
+        if (!timeFreezeOwned && spend(50000)) {
+          localStorage.setItem("timeFreeze", "true");
+          localStorage.setItem("timeFreezeOwned", "true");
+          localStorage.setItem("timeFreezeActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("timeFreeze", "toggleTimeFreeze", "timeFreezeStatus", timeFreezeOwned);
+
+      // Star Shooter
+      const starShooterOwned = localStorage.getItem("starShooterOwned") === "true";
+      document.getElementById("starShooterStatus").textContent = starShooterOwned ? "✔ Owned" : "";
+      document.getElementById("buyStarShooter").disabled = starShooterOwned;
+      document.getElementById("buyStarShooter").onclick = () => {
+        if (!starShooterOwned && spend(5000)) {
+          localStorage.setItem("starShooter", "true");
+          localStorage.setItem("starShooterOwned", "true");
+          localStorage.setItem("starShooterActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("starShooter", "toggleStarShooter", "starShooterStatus", starShooterOwned);
+
+      // Reward Scale-Up
+      const rewardScaleUpOwned = localStorage.getItem("rewardScaleUpOwned") === "true";
+      document.getElementById("rewardScaleUpStatus").textContent = rewardScaleUpOwned ? "✔ Owned" : "";
+      document.getElementById("buyRewardScaleUp").disabled = rewardScaleUpOwned;
+      document.getElementById("buyRewardScaleUp").onclick = () => {
+        if (!rewardScaleUpOwned && spend(15000)) {
+          localStorage.setItem("rewardScaleUp", "true");
+          localStorage.setItem("rewardScaleUpOwned", "true");
+          localStorage.setItem("rewardScaleUpActive", "true");
+          updateUI();
+        }
+      };
+      setupToggle("rewardScaleUp", "toggleRewardScaleUp", "rewardScaleUpStatus", rewardScaleUpOwned);
+
+      // X2 Damage
+      const x2DamageOwned = localStorage.getItem("x2DamageOwned") === "true";
+      const currentDiamonds = parseInt(localStorage.getItem("playerDiamonds") || "0");
+      document.getElementById("x2DamageStatus").textContent = x2DamageOwned ? "✔ Owned" : "";
+      document.getElementById("buyX2Damage").disabled = x2DamageOwned;
+      document.getElementById("buyX2Damage").onclick = () => {
+        if (!x2DamageOwned && currentDiamonds >= 50 && spend(100000)) {
+          localStorage.setItem("playerDiamonds", (currentDiamonds - 50).toString());
+          localStorage.setItem("x2Damage", "true");
+          localStorage.setItem("x2DamageOwned", "true");
+          localStorage.setItem("x2DamageActive", "true");
+          updateUI();
+        } else if (!x2DamageOwned && currentDiamonds < 50) {
+          alert("You need 50 diamonds and 100,000 coins for this upgrade!");
+        }
+      };
+      setupToggle("x2Damage", "toggleX2Damage", "x2DamageStatus", x2DamageOwned);
+
+      // Trail
+      const ownedTrails = JSON.parse(localStorage.getItem("trailColors") || "[]");
+      document.getElementById("trailStatus").textContent =
+        "Owned: " + ownedTrails.join(", ") || "None";
+
+      // Speed boost
+      const level = parseInt(localStorage.getItem("speedBoost") || "0");
+      let nextCost = level === 0 ? 250 : level === 1 ? 500 : level === 2 ? 1000 : null;
+      document.getElementById("buySpeed").disabled = nextCost === null;
+      document.getElementById("buySpeed").textContent =
+        nextCost === null ? "Maxed" : `Upgrade Speed (${nextCost})`;
+      document.getElementById("speedStatus").textContent = `Current Level: ${level}/3`;
+      document.getElementById("buySpeed").onclick = () => {
+        if (nextCost !== null && spend(nextCost)) {
+          localStorage.setItem("speedBoost", (level + 1).toString());
+          updateUI();
+        }
+      };
+    }
+
+    function buyTrail(color) {
+      const owned = JSON.parse(localStorage.getItem("trailColors") || "[]");
+      if (!owned.includes(color) && spend(100)) {
+        owned.push(color);
+        localStorage.setItem("trailColors", JSON.stringify(owned));
+        localStorage.setItem("trailColor", color);
+        updateUI();
+      } else if (owned.includes(color)) {
+        localStorage.setItem("trailColor", color);
+        updateUI();
+      }
+    }
+
+    // Diamond trading
+    document.getElementById("tradeDiamonds").onclick = () => {
+      const diamonds = parseInt(localStorage.getItem("playerDiamonds") || "0");
+      if (diamonds >= 1) {
+        localStorage.setItem("playerDiamonds", (diamonds - 1).toString());
+        const current = parseInt(localStorage.getItem("totalScore") || "0");
+        localStorage.setItem("totalScore", (current + 100).toString());
+        updateUI();
+      } else {
+        alert("You don't have any diamonds to trade!");
+      }
+    };
+
+    // Global toggle buttons
+    document.getElementById("toggleAllOff").onclick = () => {
+      const items = ["doublePoints", "tripleShot", "homingMissile", "fancyHomingMissile", "extraLifeBonus", 
+                     "regeneration", "minionClones", "minionHealthLevel", "minionFireRateUpgrade", 
+                     "smokeBomb", "gracePeriod", "timeFreeze", "starShooter", "rewardScaleUp", "x2Damage"];
+
+      items.forEach(item => {
+        if (localStorage.getItem(item + "Owned") === "true") {
+          // For level-based upgrades, only set Active to false, preserve the level
+          if (item === "minionHealthLevel") {
+            localStorage.setItem(item + "Active", "false");
+          } else {
+            localStorage.setItem(item, "false");
+            localStorage.setItem(item + "Active", "false");
+          }
+        }
+      });
+      updateUI();
+      alert("All purchased buffs have been turned OFF");
+    };
+
+    document.getElementById("toggleAllOn").onclick = () => {
+      const items = ["doublePoints", "tripleShot", "homingMissile", "fancyHomingMissile", "extraLifeBonus", 
+                     "regeneration", "minionClones", "minionHealthLevel", "minionFireRateUpgrade", 
+                     "smokeBomb", "gracePeriod", "timeFreeze", "starShooter", "rewardScaleUp", "x2Damage"];
+
+      items.forEach(item => {
+        if (localStorage.getItem(item + "Owned") === "true") {
+          // For level-based upgrades, restore the actual level value
+          if (item === "minionHealthLevel") {
+            const level = parseInt(localStorage.getItem(item) || "0");
+            localStorage.setItem(item, level.toString());
+            localStorage.setItem(item + "Active", "true");
+          } else {
+            localStorage.setItem(item, "true");
+            localStorage.setItem(item + "Active", "true");
+          }
+        }
+      });
+      updateUI();
+      alert("All previously purchased buffs have been turned ON");
+    };
+
+    updateUI();
+  </script>
+</body>
+</html>
