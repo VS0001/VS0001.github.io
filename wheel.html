@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Spin the Wheel - Emoji Space Invaders</title>
+  <style>
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    .wheel-container {
+      position: relative;
+      margin: 20px 0;
+    }
+    .wheel {
+      width: 400px;
+      height: 400px;
+      border-radius: 50%;
+      position: relative;
+      border: 8px solid #ffd700;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+      transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99);
+    }
+    .wheel-section {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+      clip: polygon(0 0, 100% 0, 100% 100%);
+      border: 2px solid #333;
+    }
+    .section-1 { background: #ff6b6b; transform: rotate(0deg); }
+    .section-2 { background: #4ecdc4; transform: rotate(60deg); }
+    .section-3 { background: #45b7d1; transform: rotate(120deg); }
+    .section-4 { background: #96ceb4; transform: rotate(180deg); }
+    .section-5 { background: #ffeaa7; transform: rotate(240deg); }
+    .section-6 { background: #dda0dd; transform: rotate(300deg); }
+
+    .wheel-text {
+      position: absolute;
+      font-size: 16px;
+      font-weight: bold;
+      color: #333;
+      text-shadow: 1px 1px 1px white;
+    }
+    .text-1 { top: 120px; right: 80px; transform: rotate(30deg); }
+    .text-2 { top: 80px; right: 120px; transform: rotate(90deg); }
+    .text-3 { top: 80px; left: 120px; transform: rotate(150deg); }
+    .text-4 { bottom: 120px; left: 80px; transform: rotate(210deg); }
+    .text-5 { bottom: 80px; right: 120px; transform: rotate(270deg); }
+    .text-6 { bottom: 80px; right: 80px; transform: rotate(330deg); }
+
+    .wheel-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60px;
+      height: 60px;
+      background: #ffd700;
+      border-radius: 50%;
+      border: 4px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      z-index: 10;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-top: 40px solid #ffd700;
+      z-index: 5;
+    }
+
+    .spin-button {
+      padding: 15px 30px;
+      font-size: 20px;
+      background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+      margin: 20px;
+    }
+
+    .spin-button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .spin-button:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .back-button {
+      color: #00ffff;
+      font-size: 18px;
+      text-decoration: none;
+      padding: 10px 20px;
+      background: #222;
+      border-radius: 8px;
+      margin-top: 20px;
+      transition: background 0.3s ease;
+    }
+
+    .back-button:hover {
+      background: #444;
+    }
+
+    .status-text {
+      font-size: 18px;
+      margin: 20px 0;
+      min-height: 50px;
+    }
+
+    .reward-display {
+      font-size: 24px;
+      color: #ffd700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { text-shadow: 2px 2px 4px rgba(255, 215, 0, 0.5); }
+      to { text-shadow: 2px 2px 20px rgba(255, 215, 0, 1); }
+    }
+
+    .countdown {
+      color: #ff6b6b;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎰 Spin the Wheel!</h1>
+  <p>Spin once per day for amazing rewards!</p>
+
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <div class="wheel" id="wheel">
+      <div class="wheel-section section-1"></div>
+      <div class="wheel-section section-2"></div>
+      <div class="wheel-section section-3"></div>
+      <div class="wheel-section section-4"></div>
+      <div class="wheel-section section-5"></div>
+      <div class="wheel-section section-6"></div>
+
+      <div class="wheel-text text-1">+100</div>
+      <div class="wheel-text text-2">+100</div>
+      <div class="wheel-text text-3">+100</div>
+      <div class="wheel-text text-4">+500</div>
+      <div class="wheel-text text-5">+250</div>
+      <div class="wheel-text text-6">-25% Shop</div>
+
+      <div class="wheel-center">🎯</div>
+    </div>
+  </div>
+
+  <button class="spin-button" id="spinButton">SPIN THE WHEEL! 🎲</button>
+
+  <div class="status-text" id="statusText">Ready to spin!</div>
+
+  <a href="dashboard.html" class="back-button">← Back to Dashboard</a>
+
+  <script>
+    const wheel = document.getElementById('wheel');
+    const spinButton = document.getElementById('spinButton');
+    const statusText = document.getElementById('statusText');
+
+    const rewards = [
+      { text: '+100 Coins', value: 100, type: 'points' },
+      { text: '+100 Coins', value: 100, type: 'points' },
+      { text: '+100 Coins', value: 100, type: 'points' },
+      { text: '+500 Coins', value: 500, type: 'points' },
+      { text: '+250 Coins', value: 250, type: 'points' },
+      { text: '25% Off Shop Items', value: 25, type: 'discount' }
+    ];
+
+    function canSpin() {
+      const lastSpin = localStorage.getItem('lastWheelSpin');
+      if (!lastSpin) return true;
+
+      const lastSpinDate = new Date(lastSpin);
+      const today = new Date();
+      const oneDayAgo = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+
+      return lastSpinDate < oneDayAgo;
+    }
+
+    function getTimeUntilNextSpin() {
+      const lastSpin = localStorage.getItem('lastWheelSpin');
+      if (!lastSpin) return 0;
+
+      const lastSpinDate = new Date(lastSpin);
+      const nextSpinTime = new Date(lastSpinDate.getTime() + 24 * 60 * 60 * 1000);
+      const now = new Date();
+
+      return Math.max(0, nextSpinTime - now);
+    }
+
+    function formatTimeRemaining(ms) {
+      const hours = Math.floor(ms / (1000 * 60 * 60));
+      const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+      if (hours > 0) {
+        return `${hours}h ${minutes}m ${seconds}s`;
+      } else if (minutes > 0) {
+        return `${minutes}m ${seconds}s`;
+      } else {
+        return `${seconds}s`;
+      }
+    }
+
+    function updateSpinStatus() {
+      if (canSpin()) {
+        spinButton.disabled = false;
+        spinButton.textContent = 'SPIN THE WHEEL! 🎲';
+        statusText.innerHTML = 'Ready to spin!';
+      } else {
+        spinButton.disabled = true;
+        spinButton.textContent = 'Already Spun Today';
+        const timeRemaining = getTimeUntilNextSpin();
+        statusText.innerHTML = `<span class="countdown">Next spin available in: ${formatTimeRemaining(timeRemaining)}</span>`;
+      }
+    }
+
+    function spinWheel() {
+      if (!canSpin()) return;
+        spinButton.disabled = true;
+        statusText.textContent = 'Spinning...';
+
+        // Generate random rotation (multiple full rotations + final position)
+        const randomIndex = Math.floor(Math.random() * 6);
+        const finalRotation = 1800 + (randomIndex * 60) + Math.random() * 60; // 5 full rotations + section
+
+        wheel.style.transform = `rotate(${finalRotation}deg)`;
+
+        // Calculate which section we landed on based on final rotation
+        const normalizedRotation = finalRotation % 360;
+        const sectionIndex = Math.floor((360 - normalizedRotation + 30) / 60) % 6;
+        const reward = rewards[sectionIndex];
+
+        setTimeout(() => {
+          applyReward(reward);
+          localStorage.setItem('lastWheelSpin', new Date().toISOString());
+          updateSpinStatus();
+        }, 4000);
+    }
+
+    function applyReward(reward) {
+      if (reward.type === 'points') {
+        const currentScore = parseInt(localStorage.getItem('totalScore') || '0');
+        localStorage.setItem('totalScore', currentScore + reward.value);
+        statusText.innerHTML = `<div class="reward-display">🎉 You won ${reward.text}! 🎉</div>`;
+      } else if (reward.type === 'discount') {
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 7); // 7 days from now
+        localStorage.setItem('wheelDiscount', JSON.stringify({
+          discount: reward.value,
+          expiry: expiryDate.toISOString()
+        }));
+        statusText.innerHTML = `<div class="reward-display">🎉 You won ${reward.text} for 7 days! 🎉</div>`;
+      }
+    }
+
+    // Update countdown every second
+    setInterval(updateSpinStatus, 1000);
+
+    // Initial status update
+    updateSpinStatus();
+
+    spinButton.addEventListener('click', spinWheel);
+  </script>
+</body>
+</html>
