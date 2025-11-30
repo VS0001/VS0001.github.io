@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emoji Space Invaders - Level 1</title>
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: auto;
+      background: #111;
+    }
+    #hudText {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+    }
+    #backDashboardBtn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 16px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    #winScreen, #loseScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      background: rgba(0, 0, 0, 0.8);
+      font-size: 48px;
+      color: white;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    button {
+      font-size: 24px;
+      margin-top: 20px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="800" height="600"></canvas>
+  <div id="hudText">Coins: 0 | Lives: 3 | Time: 00:00</div>
+  <button id="backDashboardBtn">Back to Dashboard</button>
+  <div id="winScreen" style="display:none; flex;">
+    <div>You Won Level 1!</div>
+    <button id="toLevel2Btn"> To level 2</button>
+  </div>
+  <div id="loseScreen" style="display:none; flex;">
+    <div>You Lost!</div>
+    <button onclick="window.location.href='index.html'">Back to Dashboard</button>
+  </div>
+
+  <script>
+    function updateTotalScore(earned) {
+      const current = parseInt(localStorage.getItem("totalScore") || "0");
+      localStorage.setItem("totalScore", current + earned);
+    }
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+      const sec = String(totalSeconds % 60).padStart(2, "0");
+      return `${min}:${sec}`;
+    }
+
+    window.onbeforeunload = () => updateTotalScore(score);
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const hud = document.getElementById("hudText");
+    const toBossBtn = document.getElementById("toBossBtn");
+    const backDashboardBtn = document.getElementById("backDashboardBtn");
+
+    // Audio elements
+    const audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
+
+
+    const storedLives = parseInt(localStorage.getItem("playerLives")) || 3;
+    const storedScore = parseInt(localStorage.getItem("playerScore")) || 0;
+    const bulletSpeed = parseInt(localStorage.getItem("bulletSpeed")) || 8;
+    const alienShootMultiplier = parseFloat(localStorage.getItem("alienShootMultiplier")) || 1;
+    const gameStartTime = parseInt(localStorage.getItem("gameTimeStart")) || Date.now();
+    const gameMode = localStorage.getItem("gameMode") || "normal";
+    
+    // Game mode multipliers
+    const bulletSpeedMultiplier = gameMode === "easy" ? 0.75 : gameMode === "hard" ? 1.5 : 1;
+    const fireRateMultiplier = gameMode === "easy" ? 1 : gameMode === "hard" ? 1.5 : 1;
+
+    const avatar = localStorage.getItem("avatarEmoji") || "🚀";
+    const trailColor = localStorage.getItem("trailColor");
+    const piercingEnabled = localStorage.getItem("piercingShot") === "true";
+    const doublePoints = localStorage.getItem("doublePoints") === "true";
+    const tripleShot = localStorage.getItem("tripleShot") === "true";
+    const homingMissile = false; // Disabled in Level 2
+    const speedBoost = parseInt(localStorage.getItem("speedBoost")) || "0";
+    const starShooter = localStorage.getItem("starShooter") === "true";
+
+    const starBulletImg = new Image();
+    starBulletImg.src = 'fancybullets.png';
+    const fancyHomingImg = new Image();
+    fancyHomingImg.src = 'fancyhomingmissile.png';
+    const speedMultiplier = 1 + speedBoost * 0.1;
+    const extraLifeBonus = localStorage.getItem("extraLifeBonus") === "true";
+    const regeneration = localStorage.getItem("regeneration") === "true";
+    const x2Damage = localStorage.getItem("x2Damage") === "true";
+    const minionClones = localStorage.getItem("minionClones") === "true";
+    const minionHealthLevel = parseInt(localStorage.getItem("minionHealthLevel")) || "0";
+    const minionFireRateUpgrade = localStorage.getItem("minionFireRateUpgrade") === "true";
+    const smokeBomb = localStorage.getItem("smokeBomb") === "true";
+    const gracePeriod = localStorage.getItem("gracePeriod") === "true";
+    const timeFreeze = localStorage.getItem("timeFreeze") === "true";
+    const rewardScaleUp = localStorage.getItem("rewardScaleUp") === "true"; // New upgrade flag
+
+    // New currency: DIAMONDS
+    let playerDiamonds = parseInt(localStorage.getItem("playerDiamonds") || "0");
+    const diamondToCoinRatio = 100;
+
+    // Cap max lives based on game mode
+    const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
+    let playerLives = Math.min(storedLives + (extraLifeBonus ? 1 : 0), maxLives);
+
+    let player = { x: 400, y: 550, width: 40, height: 40, lives: playerLives, cooldown: 0, invulnerable: gracePeriod ? 5000 : 0 };
+    let score = storedScore;
+    let bullets = [], alienBullets = [], keys = {}, direction = 1, homingMissiles = [];
+    let aliens = [], alienSpeed = 1.2, gameOver = false, shotCount = 0;
+    let playerMinions = [], minionBullets = [], minionsSpawned = false;
+    let smokeCooldown = parseInt(localStorage.getItem("smokeCooldown") || "0");
+    let smokeActive = parseInt(localStorage.getItem("smokeActive") || "0");
+    let freezeCooldown = parseInt(localStorage.getItem("timeFreezeCooldown") || "0");
+    let freezeActive = parseInt(localStorage.getItem("timeFreezeActive") || "0");
+
+    document.addEventListener("keydown", e => {
+      keys[e.key] = true;
+      if (e.key === "m" || e.key === "M") {
+        if (minionClones && !minionsSpawned) {
+          spawnPlayerMinions();
+          minionsSpawned = true;
+        }
+      }
+      if (e.key === "w" || e.key === "W") {
+        if (smokeBomb && smokeCooldown <= 0) {
+          smokeActive = 10000;
+          smokeCooldown = 20000;
+        }
+      }
+      if (e.key === "e" || e.key === "E") {
+        if (timeFreeze && freezeCooldown <= 0) {
+          freezeActive = 10000;
+          freezeCooldown = 90000;
+        }
+      }
+    });
+    document.addEventListener("keyup", e => {
+      keys[e.key] = false;
+    });
+
+    // Initialize aliens with appropriate health and emojis
+    function initializeAliens() {
+      aliens = [];
+      for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 8; c++) {
+          aliens.push({
+            x: 100 + c * 70,
+            y: 50 + r * 50,
+            width: 40,
+            height: 40,
+            health: 1, // Default health
+            shootTimer: Math.random() * 5000 + 2500,
+            hitFlashTimer: 0
+          });
+        }
+      }
+
+      // Assign health and emojis based on level or specific logic
+      const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
+
+      if (currentLevel >= 4) {
+        aliens.forEach(alien => {
+          const rand = Math.random();
+          if (rand < 0.3) alien.health = 2; // 30% chance for 2 health
+          else if (rand < 0.5) alien.health = 3; // 20% chance for 3 health
+          else if (rand < 0.6) alien.health = 4; // 10% chance for 4 health
+          else alien.health = 1; // Remaining chance for 1 health
+        });
+      }
+
+      aliens.forEach(alien => {
+        if (currentLevel >= 4) { // Level 4+ aliens start firing immediately
+          alien.shootTimer = 0;
+        }
+      });
+    }
+
+    initializeAliens();
+
+    function spawnPlayerMinions() {
+      for (let i = 0; i < 3; i++) {
+        playerMinions.push({
+          x: player.x + (i - 1) * 60,
+          y: player.y - 50,
+          width: 30,
+          height: 30,
+          health: 1 + minionHealthLevel,
+          maxHealth: 1 + minionHealthLevel,
+          direction: 1,
+          shootTimer: minionFireRateUpgrade ? 1000 : 2000
+        });
+      }
+    }
+
+    function getAlienEmoji(health) {
+      switch(health) {
+        case 2: return "👽";
+        case 3: return "😈";
+        case 4: return "💀";
+        case 5: return "👺";
+        default: return "👾"; // Default emoji for 1 health
+      }
+    }
+
+    function drawEmoji(x, y, emoji, size = "25px") {
+      ctx.font = size + " serif";
+      ctx.fillText(emoji, x, y);
+    }
+
+    function draw(deltaTime) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw grace period effect
+      if (player.invulnerable > 0) {
+        ctx.globalAlpha = 0.5;
+        ctx.fillStyle = "yellow";
+        ctx.fillRect(player.x, player.y, player.width, player.height);
+        ctx.globalAlpha = 1;
+      }
+
+      // Draw smoke effect
+      if (smokeActive > 0) {
+        ctx.globalAlpha = 0.7;
+        ctx.fillStyle = "gray";
+        ctx.fillRect(player.x - 20, player.y - 20, player.width + 40, player.height + 40);
+        ctx.globalAlpha = 1;
+      }
+
+      drawEmoji(player.x, player.y, avatar);
+
+      // Draw minions
+      playerMinions.forEach(minion => {
+        drawEmoji(minion.x, minion.y, "🤖", "20px");
+      });
+
+      if (trailColor) {
+        ctx.strokeStyle = trailColor;
+        ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(player.x + 20, player.y + 20);
+        ctx.lineTo(player.x - 30, player.y + 20);
+        ctx.lineTo(player.x + 70, player.y + 20);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.lineWidth = 1;
+
+        bullets.forEach(b => {
+          ctx.beginPath();
+          ctx.moveTo(b.x + 2, b.y + 10);
+          ctx.lineTo(b.x + 2, b.y + 30);
+          ctx.stroke();
+        });
+      }
+
+      aliens.forEach(alien => {
+        if (alien.hitFlashTimer > 0) {
+          drawEmoji(alien.x, alien.y, "💥");
+          alien.hitFlashTimer -= deltaTime;
+        } else {
+          drawEmoji(alien.x, alien.y, getAlienEmoji(alien.health));
+        }
+      });
+
+      bullets.forEach(b => {
+        if (starShooter) {
+          ctx.drawImage(starBulletImg, b.x - 6, b.y - 6, 16, 16);
+        } else {
+          ctx.fillStyle = "white";
+          ctx.fillRect(b.x, b.y, 4, 10);
+        }
+      });
+
+      ctx.fillStyle = "white";
+      minionBullets.forEach(b => ctx.fillRect(b.x, b.y, 3, 8));
+
+      ctx.fillStyle = "red";
+      alienBullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 10));
+
+      const fancyHomingActive = localStorage.getItem("fancyHomingMissile") === "true";
+      if (fancyHomingActive) {
+        homingMissiles.forEach(m => {
+          ctx.drawImage(fancyHomingImg, m.x - 20, m.y - 20, 40, 40);
+        });
+      } else {
+        ctx.fillStyle = "cyan";
+        homingMissiles.forEach(m => {
+          ctx.beginPath();
+          ctx.arc(m.x, m.y, 15, 0, 2 * Math.PI);
+          ctx.fill();
+        });
+      }
+    }
+
+    function update(deltaTime) {
+      if (gameOver) return;
+
+      if (keys["ArrowLeft"]) player.x -= 6 * speedMultiplier;
+      if (keys["ArrowRight"]) player.x += 6 * speedMultiplier;
+      if (keys["ArrowUp"]) player.y -= 3 * speedMultiplier;
+      if (keys["ArrowDown"]) player.y += 3 * speedMultiplier;
+
+      player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+      player.y = Math.max(520, Math.min(canvas.height - player.height, player.y));
+
+      player.cooldown -= deltaTime;
+      if (keys[" "] && player.cooldown <= 0) {
+        shotCount++;
+        const homingMissileEnabled = localStorage.getItem("homingMissile") === "true";
+        if (shotCount % 5 === 0 && homingMissileEnabled) {
+          // Every 5th shot is a homing missile (only if purchased)
+          homingMissiles.push({ x: player.x + 18, y: player.y, vx: 0, vy: -5 });
+        } else {
+          if (tripleShot) {
+            bullets.push({ x: player.x + 18, y: player.y, dx: -1 });
+            bullets.push({ x: player.x + 18, y: player.y, dx: 0 });
+            bullets.push({ x: player.x + 18, y: player.y, dx: 1 });
+          } else {
+            bullets.push({ x: player.x + 18, y: player.y, dx: 0 });
+          }
+        }
+
+        // Default fire rate is 400ms (consistent across all levels)
+        player.cooldown = 400;
+      }
+
+      bullets.forEach(b => {
+        b.x += (b.dx || 0) * 2;
+        b.y -= 10;
+      });
+      bullets = bullets.filter(b => b.y > 0);
+
+      // Homing missile logic - targets highest health enemy
+      const fancyHomingActive = localStorage.getItem("fancyHomingMissile") === "true";
+      const homingSpeed = fancyHomingActive ? 12 : 6;
+      const homingDamage = fancyHomingActive ? 4 : 2;
+
+      homingMissiles.forEach((m, i) => {
+        let target = null;
+        let maxHealth = 0;
+
+        aliens.forEach(a => {
+          if (a.health > maxHealth) {
+            maxHealth = a.health;
+            target = a;
+          }
+        });
+
+        if (target) {
+          const dx = target.x + target.width/2 - m.x;
+          const dy = target.y + target.height/2 - m.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 20) {
+            homingMissiles.splice(i, 1);
+            const originalHealth = target.health;
+            target.health -= homingDamage;
+            target.hitFlashTimer = 200;
+            if (target.health <= 0) {
+              aliens.splice(aliens.indexOf(target), 1);
+              const basePoints = rewardScaleUp ? originalHealth : (originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : 1);
+              score += doublePoints ? basePoints * 2 : basePoints;
+              if (aliens.length === 0) {
+                gameOver = true;
+                const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
+                localStorage.setItem(`level${currentLevel}Complete`, "true");
+                updateTotalScore(score);
+
+                // --- Win Screen and Life Logic ---
+                const gameMode = localStorage.getItem("gameMode") || "normal";
+                const startingLives = gameMode === "easy" ? 5 : gameMode === "hard" ? 1 : 3;
+                const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
+                let finalLives = player.lives;
+                if (regeneration && finalLives < startingLives + (extraLifeBonus ? 1 : 0)) {
+                  finalLives = Math.min(finalLives + 1, maxLives);
+                }
+                localStorage.setItem("playerLives", finalLives);
+
+                const elapsed = Date.now() - gameStartTime;
+                const result = { time: elapsed, score, lives: player.lives, gameMode, date: new Date().toLocaleString() };
+                const board = JSON.parse(localStorage.getItem("scoreboard") || "[]");
+                board.push(result);
+                board.sort((a, b) => a.time - b.time);
+                localStorage.setItem("scoreboard", JSON.stringify(board));
+
+                const winScreenMessage = `You Won Level ${currentLevel}!`;
+                document.querySelector("#winScreen div").textContent = winScreenMessage;
+                document.getElementById("winScreen").style.display = "flex";
+
+                // Determine next level or dashboard
+                let nextLevelHtml = "";
+                if (currentLevel < 5) {
+                  nextLevelHtml = `<button id="nextLevelBtn">To Level ${currentLevel + 1}</button>`;
+                } else {
+                  nextLevelHtml = `<button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>`;
+                }
+                document.getElementById("winScreen").querySelector("button").outerHTML = nextLevelHtml;
+
+                if (currentLevel < 5) {
+                  document.getElementById('nextLevelBtn').onclick = () => {
+                    localStorage.setItem("playerLives", player.lives);
+                    localStorage.setItem("playerScore", score);
+                    localStorage.setItem("gameTimeStart", Date.now()); // Reset timer for next level
+                    window.location.href = `level${currentLevel + 1}.html`;
+                  };
+                }
+              }
+            }
+          } else {
+            m.x += (dx / dist) * homingSpeed;
+            m.y += (dy / dist) * homingSpeed;
+          }
+        } else {
+          m.y -= (fancyHomingActive ? 10 : 5);
+        }
+      });
+      homingMissiles = homingMissiles.filter(m => m.y > 0);
+
+      alienBullets.forEach(b => b.y += 6 * bulletSpeedMultiplier);
+      alienBullets = alienBullets.filter(b => b.y < canvas.height);
+
+      // Update cooldowns
+      player.invulnerable = Math.max(0, player.invulnerable - deltaTime);
+      smokeCooldown = Math.max(0, smokeCooldown - deltaTime);
+      smokeActive = Math.max(0, smokeActive - deltaTime);
+      freezeCooldown = Math.max(0, freezeCooldown - deltaTime);
+      freezeActive = Math.max(0, freezeActive - deltaTime);
+
+      // Minion logic
+      playerMinions.forEach((minion, mi) => {
+        minion.x += minion.direction * 2;
+        if (minion.x <= 0 || minion.x + minion.width >= canvas.width) {
+          minion.direction *= -1;
+        }
+
+        if (!freezeActive) {
+          minion.shootTimer -= deltaTime;
+          if (minion.shootTimer <= 0) {
+            minionBullets.push({ x: minion.x + 15, y: minion.y });
+            minion.shootTimer = minionFireRateUpgrade ? 1000 : 2000;
+          }
+        }
+      });
+
+      minionBullets.forEach(b => b.y -= 8);
+      minionBullets = minionBullets.filter(b => b.y > 0);
+
+      let edgeHit = false;
+      if (!freezeActive) {
+        for (let alien of aliens) {
+          alien.x += alienSpeed * direction;
+          if (alien.x <= 0 || alien.x + alien.width >= canvas.width) edgeHit = true;
+          alien.shootTimer -= deltaTime * alienShootMultiplier;
+          if (alien.shootTimer <= 0 && (!smokeActive || Math.random() > 0.7)) {
+            alienBullets.push({ x: alien.x + 20, y: alien.y + 20 });
+            const baseInterval = Math.random() * 5000 + 2500;
+            alien.shootTimer = baseInterval / fireRateMultiplier;
+          }
+        }
+        if (edgeHit) direction *= -1;
+      }
+
+      // Player bullet collisions
+      for (let bi = bullets.length - 1; bi >= 0; bi--) {
+        const b = bullets[bi];
+        let bulletHit = false;
+
+        for (let ai = aliens.length - 1; ai >= 0 && !bulletHit; ai--) {
+          const a = aliens[ai];
+          if (b.x < a.x + a.width && b.x + 4 > a.x &&
+              b.y < a.y + a.height && b.y + 10 > a.y) {
+            bullets.splice(bi, 1);
+            bulletHit = true;
+            const originalHealth = a.health;
+            const bulletDamage = x2Damage ? 2 : 1;
+            a.health -= bulletDamage;
+            a.hitFlashTimer = 200;
+            if (a.health <= 0) {
+              aliens.splice(ai, 1);
+              let basePoints;
+              if (rewardScaleUp) {
+                basePoints = originalHealth;
+              } else {
+                basePoints = originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : originalHealth === 4 ? 4 : 1;
+              }
+              score += doublePoints ? basePoints * 2 : basePoints;
+              if (aliens.length === 0) {
+                gameOver = true;
+                const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
+                localStorage.setItem(`level${currentLevel}Complete`, "true");
+                // Save special ability timers
+                localStorage.setItem("smokeCooldown", smokeCooldown);
+                localStorage.setItem("smokeActive", smokeActive);
+                localStorage.setItem("timeFreezeCooldown", freezeCooldown);
+                localStorage.setItem("timeFreezeActive", freezeActive);
+                updateTotalScore(score);
+
+                // --- Win Screen and Life Logic ---
+                const gameMode = localStorage.getItem("gameMode") || "normal";
+                const startingLives = gameMode === "easy" ? 5 : gameMode === "hard" ? 1 : 3;
+                const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
+                let finalLives = player.lives;
+                if (regeneration && finalLives < startingLives + (extraLifeBonus ? 1 : 0)) {
+                  finalLives = Math.min(finalLives + 1, maxLives);
+                }
+                localStorage.setItem("playerLives", finalLives);
+
+                const elapsed = Date.now() - gameStartTime;
+                const result = { time: elapsed, score, lives: player.lives, gameMode, date: new Date().toLocaleString() };
+                const board = JSON.parse(localStorage.getItem("scoreboard") || "[]");
+                board.push(result);
+                board.sort((a, b) => a.time - b.time);
+                localStorage.setItem("scoreboard", JSON.stringify(board));
+
+                const winScreenMessage = `You Won Level ${currentLevel}!`;
+                document.querySelector("#winScreen div").textContent = winScreenMessage;
+                document.getElementById("winScreen").style.display = "flex";
+
+                // Determine next level or dashboard
+                let nextLevelHtml = "";
+                if (currentLevel < 5) {
+                  nextLevelHtml = `<button id="nextLevelBtn">To Level ${currentLevel + 1}</button>`;
+                } else {
+                  nextLevelHtml = `<button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>`;
+                }
+                document.getElementById("winScreen").querySelector("button").outerHTML = nextLevelHtml;
+
+                if (currentLevel < 5) {
+                  document.getElementById('nextLevelBtn').onclick = () => {
+                    localStorage.setItem("playerLives", player.lives);
+                    localStorage.setItem("playerScore", score);
+                    localStorage.setItem("gameTimeStart", Date.now()); // Reset timer for next level
+                    window.location.href = `level${currentLevel + 1}.html`;
+                  };
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
+
+      // Minion bullet collisions
+      for (let bi = minionBullets.length - 1; bi >= 0; bi--) {
+        const b = minionBullets[bi];
+        let bulletHit = false;
+
+        for (let ai = aliens.length - 1; ai >= 0 && !bulletHit; ai--) {
+          const a = aliens[ai];
+          if (b.x < a.x + a.width && b.x + 3 > a.x &&
+              b.y < a.y + a.height && b.y + 8 > a.y) {
+            minionBullets.splice(bi, 1);
+            bulletHit = true;
+            const originalHealth = a.health;
+            const minionBulletDamage = x2Damage ? 2 : 1;
+            a.health -= minionBulletDamage;
+            a.hitFlashTimer = 200;
+            if (a.health <= 0) {
+              aliens.splice(ai, 1);
+              let basePoints = 1;
+              if (rewardScaleUp) {
+                basePoints = originalHealth;
+              } else {
+                basePoints = originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : originalHealth === 4 ? 4 : 1;
+              }
+              score += doublePoints ? basePoints * 2 : basePoints;
+              if (aliens.length === 0) {
+                gameOver = true;
+                const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
+                localStorage.setItem(`level${currentLevel}Complete`, "true");
+                // Save special ability timers
+                localStorage.setItem("smokeCooldown", smokeCooldown);
+                localStorage.setItem("smokeActive", smokeActive);
+                localStorage.setItem("timeFreezeCooldown", freezeCooldown);
+                localStorage.setItem("timeFreezeActive", freezeActive);
+                updateTotalScore(score);
+
+                // --- Win Screen and Life Logic ---
+                const gameMode = localStorage.getItem("gameMode") || "normal";
+                const startingLives = gameMode === "easy" ? 5 : gameMode === "hard" ? 1 : 3;
+                const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
+                let finalLives = player.lives;
+                if (regeneration && finalLives < startingLives + (extraLifeBonus ? 1 : 0)) {
+                  finalLives = Math.min(finalLives + 1, maxLives);
+                }
+                localStorage.setItem("playerLives", finalLives);
+
+                const elapsed = Date.now() - gameStartTime;
+                const result = { time: elapsed, score, lives: player.lives, gameMode, date: new Date().toLocaleString() };
+                const board = JSON.parse(localStorage.getItem("scoreboard") || "[]");
+                board.push(result);
+                board.sort((a, b) => a.time - b.time);
+                localStorage.setItem("scoreboard", JSON.stringify(board));
+
+                const winScreenMessage = `You Won Level ${currentLevel}!`;
+                document.querySelector("#winScreen div").textContent = winScreenMessage;
+                document.getElementById("winScreen").style.display = "flex";
+
+                // Determine next level or dashboard
+                let nextLevelHtml = "";
+                if (currentLevel < 5) {
+                  nextLevelHtml = `<button id="nextLevelBtn">To Level ${currentLevel + 1}</button>`;
+                } else {
+                  nextLevelHtml = `<button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>`;
+                }
+                document.getElementById("winScreen").querySelector("button").outerHTML = nextLevelHtml;
+
+                if (currentLevel < 5) {
+                  document.getElementById('nextLevelBtn').onclick = () => {
+                    localStorage.setItem("playerLives", player.lives);
+                    localStorage.setItem("playerScore", score);
+                    localStorage.setItem("gameTimeStart", Date.now()); // Reset timer for next level
+                    window.location.href = `level${currentLevel + 1}.html`;
+                  };
+                }
+              }
+            }
+            break;
+          }
+        }
+      }
+
+      // Alien bullets hit minions
+      for (let bi = alienBullets.length - 1; bi >= 0; bi--) {
+        const b = alienBullets[bi];
+        for (let mi = playerMinions.length - 1; mi >= 0; mi--) {
+          const minion = playerMinions[mi];
+          if (b.x < minion.x + minion.width && b.x + 4 > minion.x &&
+              b.y < minion.y + minion.height && b.y + 10 > minion.y) {
+            alienBullets.splice(bi, 1);
+            minion.health--;
+            if (minion.health <= 0) {
+              playerMinions.splice(mi, 1);
+            }
+            break;
+          }
+        }
+      }
+
+      for (let bi = alienBullets.length - 1; bi >= 0; bi--) {
+        const b = alienBullets[bi];
+        if (b.x < player.x + player.width && b.x + 4 > player.x &&
+            b.y < player.y + player.height && b.y + 10 > player.y) {
+          alienBullets.splice(bi, 1);
+          if (player.invulnerable <= 0) {
+            player.lives--;
+            if (player.lives <= 0) {
+              gameOver = true;
+              updateTotalScore(score);
+              setTimeout(() => document.getElementById("loseScreen").style.display = "flex", 300);
+            } else {
+              bullets = [];
+              alienBullets = [];
+              homingMissiles = [];
+              minionBullets = [];
+              player.x = 400;
+              player.y = 550;
+              player.cooldown = 0;
+              player.invulnerable = gracePeriod ? 2000 : 1000;
+            }
+          }
+        }
+      }
+
+      const elapsed = Date.now() - gameStartTime;
+      let cooldownText = "";
+      if (smokeCooldown > 0) {
+        cooldownText += ` | Smoke: ${Math.ceil(smokeCooldown / 1000)}s`;
+      }
+      if (freezeCooldown > 0) {
+        cooldownText += ` | Freeze: ${Math.ceil(freezeCooldown / 1000)}s`;
+      }
+      hud.innerText = `Coins: ${score} | Diamonds: ${playerDiamonds} | Lives: ${player.lives} | Time: ${formatTime(elapsed)}${cooldownText}`;
+    }
+
+    function loop(time) {
+      const delta = time - (loop.last || 0);
+      loop.last = time;
+      update(delta);
+      draw(delta);
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+
+    // Determine initial level and set up win screen button
+    const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
+    if (currentLevel === 1) {
+      document.getElementById('toLevel2Btn').textContent = "To Level 2";
+      document.getElementById('toLevel2Btn').onclick = () => {
+        localStorage.setItem("playerLives", player.lives);
+        localStorage.setItem("playerScore", score);
+        localStorage.setItem("playerDiamonds", playerDiamonds); // Save diamonds
+        localStorage.setItem("gameTimeStart", Date.now());
+        window.location.href = "level2.html";
+      };
+    } else {
+      document.getElementById('toLevel2Btn').textContent = `To Level ${currentLevel + 1}`;
+      document.getElementById('toLevel2Btn').onclick = () => {
+        localStorage.setItem("playerLives", player.lives);
+        localStorage.setItem("playerScore", score);
+        localStorage.setItem("playerDiamonds", playerDiamonds); // Save diamonds
+        localStorage.setItem("gameTimeStart", Date.now());
+        window.location.href = `level${currentLevel + 1}.html`;
+      };
+    }
+
+
+    backDashboardBtn.onclick = () => {
+      updateTotalScore(score);
+      localStorage.setItem("playerDiamonds", playerDiamonds); // Save diamonds
+      window.location.href = "dashboard.html";
+    };
+
+    // Touchscreen support
+    let autoFire = false;
+    let autoFireInterval;
+
+    // Show touchscreen controls on all devices
+    const touchControls = document.createElement('div');
+    touchControls.innerHTML = `
+      <button id="leftBtn" style="position: absolute; bottom: 20px; left: 20px; width: 60px; height: 60px; background: rgba(0,255,255,0.7); border: none; border-radius: 50%; color: white; font-size: 24px;">←</button>
+      <button id="rightBtn" style="position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; background: rgba(0,255,255,0.7); border: none; border-radius: 50%; color: white; font-size: 24px;">→</button>
+      <button id="fireBtn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background: rgba(255,0,0,0.7); border: none; border-radius: 50%; color: white; font-size: 16px; font-weight: bold;">FIRE</button>
+      <button id="autoFireBtn" style="position: absolute; top: 50px; right: 20px; padding: 10px; background: rgba(255,255,255,0.2); border: 1px solid white; border-radius: 5px; color: white;">Auto-Fire: OFF</button>
+      <div id="abilityButtons" style="position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px;">
+        <button id="minionBtn" style="padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (M)</button>
+        <button id="freezeBtn" style="padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (E)</button>
+        <button id="smokeBtn" style="padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (W)</button>
+      </div>
+    `;
+    document.body.appendChild(touchControls);
+
+    // Touch controls - both touch and mouse events
+    document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keys["ArrowLeft"] = true;
+    });
+    document.getElementById('leftBtn').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keys["ArrowLeft"] = false;
+    });
+    document.getElementById('leftBtn').addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      keys["ArrowLeft"] = true;
+    });
+    document.getElementById('leftBtn').addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      keys["ArrowLeft"] = false;
+    });
+
+    document.getElementById('rightBtn').addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      keys["ArrowRight"] = true;
+    });
+    document.getElementById('rightBtn').addEventListener('touchend', (e) => {
+      e.preventDefault();
+      keys["ArrowRight"] = false;
+    });
+    document.getElementById('rightBtn').addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      keys["ArrowRight"] = true;
+    });
+    document.getElementById('rightBtn').addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      keys["ArrowRight"] = false;
+    });
+
+    // Fire button
+    document.getElementById('fireBtn').addEventListener('click', () => {
+      if (player.cooldown <= 0 && !gameOver) {
+        keys[" "] = true;
+        setTimeout(() => keys[" "] = false, 50);
+      }
+    });
+
+    // Auto-fire toggle with R key support
+    document.getElementById('autoFireBtn').addEventListener('click', () => {
+      autoFire = !autoFire;
+      document.getElementById('autoFireBtn').textContent = autoFire ? 'Auto-Fire: ON' : 'Auto-Fire: OFF';
+
+      if (autoFire) {
+        autoFireInterval = setInterval(() => {
+          if (!gameOver && player.cooldown <= 0) {
+            keys[" "] = true;
+            setTimeout(() => keys[" "] = false, 50);
+          }
+        }, 200);
+      } else {
+        clearInterval(autoFireInterval);
+      }
+    });
+
+    // R key for auto-fire toggle
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        document.getElementById('autoFireBtn').click();
+      }
+    });
+
+      // Auto-fire
+      document.getElementById('autoFireBtn').addEventListener('click', () => {
+        autoFire = !autoFire;
+        document.getElementById('autoFireBtn').textContent = `Auto-Fire: ${autoFire ? 'ON' : 'OFF'}`;
+        if (autoFire) {
+          autoFireInterval = setInterval(() => {
+            if (!gameOver && player.cooldown <= 0) {
+              keys[" "] = true;
+              setTimeout(() => keys[" "] = false, 50);
+            }
+          }, 200);
+        } else {
+          clearInterval(autoFireInterval);
+        }
+      });
+
+      // Show/hide ability buttons based on ownership
+      if (localStorage.getItem("minionClones") === "true") {
+        document.getElementById('minionBtn').style.display = 'block';
+      } else {
+        document.getElementById('minionBtn').style.display = 'none';
+      }
+
+      if (localStorage.getItem("timeFreeze") === "true") {
+        document.getElementById('freezeBtn').style.display = 'block';
+      } else {
+        document.getElementById('freezeBtn').style.display = 'none';
+      }
+
+      if (localStorage.getItem("smokeBomb") === "true") {
+        document.getElementById('smokeBtn').style.display = 'block';
+      } else {
+        document.getElementById('smokeBtn').style.display = 'none';
+      }
+
+      // Ability buttons
+      document.getElementById('minionBtn').addEventListener('click', () => {
+        const event = new KeyboardEvent('keydown', { key: 'M' });
+        document.dispatchEvent(event);
+      });
+
+      document.getElementById('freezeBtn').addEventListener('click', () => {
+        const event = new KeyboardEvent('keydown', { key: 'E' });
+        document.dispatchEvent(event);
+      });
+
+      document.getElementById('smokeBtn').addEventListener('click', () => {
+        const event = new KeyboardEvent('keydown', { key: 'W' });
+        document.dispatchEvent(event);
+      });
+
+      // Tap to shoot
+    canvas.addEventListener('click', () => {
+      if (!autoFire) keys[" "] = true;
+    });
+
+    // R key for auto-fire
+    document.addEventListener("keydown", e => {
+      if (e.key === "r" || e.key === "R") {
+        autoFire = !autoFire;
+        if (document.getElementById('autoFireBtn')) {
+          document.getElementById('autoFireBtn').textContent = `Auto-Fire: ${autoFire ? 'ON' : 'OFF'}`;
+        }
+        if (autoFire) {
+          autoFireInterval = setInterval(() => keys[" "] = true, 100);
+        } else {
+          clearInterval(autoFireInterval);
+          keys[" "] = false;
+        }
+      }
+    });
+
+
+  </script>
+</body>
+</html>
