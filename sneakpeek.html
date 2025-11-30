@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emoji Space Invaders - Future Aliens Sneak Peek</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #000000 0%, #1a0033 50%, #000000 100%);
+      color: white;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 0 20px #00ff00;
+    }
+    .alien-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 30px;
+      max-width: 1200px;
+      margin: 40px 0;
+    }
+    .alien-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid #00ff00;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .alien-card:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px #00ff00;
+    }
+    .alien-emoji {
+      font-size: 72px;
+      margin: 10px 0;
+    }
+    .alien-name {
+      font-size: 20px;
+      margin: 10px 0;
+      color: #00ff00;
+    }
+    .alien-desc {
+      font-size: 14px;
+      color: #aaa;
+    }
+    button {
+      font-size: 24px;
+      padding: 15px 30px;
+      margin-top: 40px;
+      background: #00ff00;
+      color: black;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #00ff00;
+      box-shadow: 0 0 20px #00ff00;
+      transform: scale(1.05);
+    }
+    .coming-soon {
+      font-size: 24px;
+      color: #ff00ff;
+      text-align: center;
+      margin-top: 20px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+  </style>
+</head>
+<body>
+  <h1>🚀 FUTURE ALIEN TYPES 🛸</h1>
+  <p style="font-size: 18px; text-align: center; max-width: 800px;">
+    These mysterious alien species will appear in future updates of Emoji Space Invaders!
+  </p>
+  
+  <div class="alien-grid">
+    <div class="alien-card">
+      <img src="advancedalien.png" alt="Advanced Alien" style="width: 100px; height: 100px; object-fit: contain;">
+      <div class="alien-name">Advanced Alien Type 1</div>
+      <div class="alien-desc">Future enemy sprite for enhanced levels</div>
+    </div>
+    
+    <div class="alien-card">
+      <img src="advancedalien2.png" alt="Advanced Alien 2" style="width: 100px; height: 100px; object-fit: contain;">
+      <div class="alien-name">Advanced Alien Type 2</div>
+      <div class="alien-desc">Alternate enemy design for variety</div>
+    </div>
+    
+    <div class="alien-card">
+      <img src="level9boss.png" alt="Level 9 Boss" style="width: 100px; height: 100px; object-fit: contain;">
+      <div class="alien-name">Level 9 Boss</div>
+      <div class="alien-desc">Epic boss battle coming in Level 9</div>
+    </div>
+    
+    <div class="alien-card">
+      <img src="level12boss.png" alt="Level 12 Boss" style="width: 100px; height: 100px; object-fit: contain;">
+      <div class="alien-name">Level 12 Boss</div>
+      <div class="alien-desc">Final boss for Level 12 showdown</div>
+    </div>
+    
+    <div class="alien-card">
+      <div class="alien-emoji">🦑</div>
+      <div class="alien-name">Tentacle Terror</div>
+      <div class="alien-desc">Shoots in 8 directions</div>
+    </div>
+    
+    <div class="alien-card">
+      <div class="alien-emoji">🤡</div>
+      <div class="alien-name">Chaos Clown</div>
+      <div class="alien-desc">Random teleportation</div>
+    </div>
+    
+  
+    
+   
+    
+    <div class="alien-card">
+      <div class="alien-emoji">🦇</div>
+      <div class="alien-name">Bat Bomber</div>
+      <div class="alien-desc">Dive bomb attacks</div>
+    </div>
+    
+
+  
+  </div>
+  
+  <p class="coming-soon">⭐ COMING IN VERSION 5.0 | EMAIL ME AT 1112360@LWSD.ORG FOR MORE⭐</p>
+  <p class="coming-soon">NEW CURRENCY DIAMONDS WILL BE PUT TO USE IN v5.0!!! DIAMONDS ARE DROPPED FROM BOSSES</p>
+  
+  <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+</body>
+</html>
