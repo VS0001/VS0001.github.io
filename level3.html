@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Emoji Space Invaders - Level 2</title>
+  <title>Emoji Space Invaders - Boss #1</title>
   <style>
     body {
       margin: 0;
@@ -21,6 +21,13 @@
       top: 10px;
       left: 10px;
       font-size: 20px;
+    }
+    #cooldownText {
+      position: absolute;
+      top: 40px;
+      left: 10px;
+      font-size: 16px;
+      color: cyan;
     }
     #backDashboardBtn {
       position: absolute;
@@ -54,53 +61,59 @@
 </head>
 <body>
   <canvas id="game" width="800" height="600"></canvas>
-  <div id="hudText">Coins: 0 | Lives: 3 | Time: 00:00</div>
+  <div id="hudText">Score: 0 | Lives: 3 | Time: 00:00</div>
   <button id="backDashboardBtn">Back to Dashboard</button>
   <div id="winScreen" style="display:none; flex;">
-    <div>You Won Level 2!</div>
-    <button id="toBossBtn">FIRST BOSS BATTLE</button>
+    <div>You Won Boss #1!</div>
+    <button id="toBossBtn">Next Level</button>
+    <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
   </div>
   <div id="loseScreen" style="display:none; flex;">
     <div>You Lost!</div>
-    <button onclick="window.location.href='index.html'">Back to Dashboard</button>
+    <button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+  </div>
+
+  <!-- Touchscreen Controls -->
+  <div id="touchControls" style="display: block;">
+    <button id="leftBtn" style="position: absolute; bottom: 20px; left: 20px; width: 60px; height: 60px; background: rgba(0,255,255,0.7); border: none; border-radius: 50%; color: white; font-size: 24px;">←</button>
+    <button id="rightBtn" style="position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; background: rgba(0,255,255,0.7); border: none; border-radius: 50%; color: white; font-size: 24px;">→</button>
+    <button id="fireBtn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background: rgba(255,0,0,0.7); border: none; border-radius: 50%; color: white; font-size: 16px; font-weight: bold;">FIRE</button>
+    <button id="autoFireBtn" style="position: absolute; top: 50px; right: 20px; padding: 10px; background: rgba(255,255,255,0.2); border: 1px solid white; border-radius: 5px; color: white;">Auto-Fire: OFF</button>
+    <div id="abilityButtons" style="position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px;">
+      <button id="minionBtn" style="display: none; padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (M)</button>
+      <button id="freezeBtn" style="display: none; padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (E)</button>
+      <button id="smokeBtn" style="display: none; padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (W)</button>
+    </div>
   </div>
 
   <script>
-    // Check if player completed Level 1
-    const level1Complete = localStorage.getItem("level1Complete");
-    if (level1Complete !== "true") {
-      alert("You must complete Level 1 first!");
-      window.location.href = "index.html";
-    }
-
     function updateTotalScore(earned) {
       const current = parseInt(localStorage.getItem("totalScore") || "0");
       localStorage.setItem("totalScore", current + earned);
     }
 
     function formatTime(ms) {
-      const totalSeconds = Math.floor(ms / 1000);
-      const min = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
-      const sec = String(totalSeconds % 60).padStart(2, "0");
-      return `${min}:${sec}`;
+      const s = Math.floor(ms / 1000);
+      return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
     }
-
-    window.onbeforeunload = () => updateTotalScore(score);
 
     const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
     const hud = document.getElementById("hudText");
-    const toBossBtn = document.getElementById("toBossBtn");
+    const cooldownText = document.getElementById("cooldownText");
+    const winScreen = document.getElementById("winScreen");
+    const loseScreen = document.getElementById("loseScreen");
     const backDashboardBtn = document.getElementById("backDashboardBtn");
 
-    // Audio elements
-    const audioEnabled = localStorage.getItem('audioEnabled') !== 'false';
+    // Check if player completed Level 2
+    const level2Complete = localStorage.getItem("level2Complete");
+    if (level2Complete !== "true") {
+      alert("You must complete Level 2 first!");
+      window.location.href = "dashboard.html";
+    }
 
-
-    const storedLives = parseInt(localStorage.getItem("playerLives")) || 3;
-    const storedScore = parseInt(localStorage.getItem("playerScore")) || 0;
-    const bulletSpeed = parseInt(localStorage.getItem("bulletSpeed")) || 8;
-    const alienShootMultiplier = parseFloat(localStorage.getItem("alienShootMultiplier")) || 1;
+    const lives = parseInt(localStorage.getItem("playerLives")) || 3;
+    const scoreStart = parseInt(localStorage.getItem("playerScore")) || 0;
     const gameStartTime = parseInt(localStorage.getItem("gameTimeStart")) || Date.now();
     const gameMode = localStorage.getItem("gameMode") || "normal";
     
@@ -111,41 +124,54 @@
     const avatar = localStorage.getItem("avatarEmoji") || "🚀";
     const trailColor = localStorage.getItem("trailColor");
     const piercingEnabled = localStorage.getItem("piercingShot") === "true";
-    const doublePoints = localStorage.getItem("doublePoints") === "true";
     const tripleShot = localStorage.getItem("tripleShot") === "true";
-    const homingMissile = false; // Disabled in Level 2
-    const speedBoost = parseInt(localStorage.getItem("speedBoost")) || "0";
+    const doublePoints = localStorage.getItem("doublePoints") === "true";
+    const bossWeakness = localStorage.getItem("bossWeakness") === "true";
+    const speedBoost = parseInt(localStorage.getItem("speedBoost") || "0");
     const starShooter = localStorage.getItem("starShooter") === "true";
-    
+
     const starBulletImg = new Image();
     starBulletImg.src = 'fancybullets.png';
     const fancyHomingImg = new Image();
     fancyHomingImg.src = 'fancyhomingmissile.png';
     const speedMultiplier = 1 + speedBoost * 0.1;
+
     const extraLifeBonus = localStorage.getItem("extraLifeBonus") === "true";
     const regeneration = localStorage.getItem("regeneration") === "true";
     const x2Damage = localStorage.getItem("x2Damage") === "true";
     const minionClones = localStorage.getItem("minionClones") === "true";
-    const minionHealthLevel = parseInt(localStorage.getItem("minionHealthLevel")) || "0";
+    const minionHealthLevel = parseInt(localStorage.getItem("minionHealthLevel") || "0");
     const minionFireRateUpgrade = localStorage.getItem("minionFireRateUpgrade") === "true";
     const smokeBomb = localStorage.getItem("smokeBomb") === "true";
     const gracePeriod = localStorage.getItem("gracePeriod") === "true";
     const timeFreeze = localStorage.getItem("timeFreeze") === "true";
-    const rewardScaleUp = localStorage.getItem("rewardScaleUp") === "true"; // Reward Scale-Up upgrade
+    const rewardScaleUp = localStorage.getItem("rewardScaleUp") === "true"; // Added for Reward Scale-Up
+
+    // New currency: DIAMONDS
+    const diamonds = parseInt(localStorage.getItem("playerDiamonds") || "0");
 
     // Cap max lives based on game mode
     const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
-    let playerLives = Math.min(storedLives + (extraLifeBonus ? 1 : 0), maxLives);
+    let playerLives = Math.min(lives + (extraLifeBonus ? 1 : 0), maxLives);
 
     let player = { x: 400, y: 550, width: 40, height: 40, lives: playerLives, cooldown: 0, invulnerable: gracePeriod ? 5000 : 0 };
-    let score = storedScore;
-    let bullets = [], alienBullets = [], keys = {}, direction = 1, homingMissiles = [];
-    let aliens = [], alienSpeed = 1.2, gameOver = false, shotCount = 0;
-    let playerMinions = [], minionBullets = [], minionsSpawned = false;
+    let score = scoreStart;
+    let bullets = [], enemyBullets = [], homingMissiles = [], keys = {};
+    let minions = [], playerMinions = [], minionBullets = [], gameOver = false, shotCount = 0;
+    const homingMissileEnabled = localStorage.getItem("homingMissile") === "true";
     let smokeCooldown = parseInt(localStorage.getItem("smokeCooldown") || "0");
     let smokeActive = parseInt(localStorage.getItem("smokeActive") || "0");
     let freezeCooldown = parseInt(localStorage.getItem("timeFreezeCooldown") || "0");
     let freezeActive = parseInt(localStorage.getItem("timeFreezeActive") || "0");
+    let minionsSpawned = false;
+
+    const boss = {
+      x: 350, y: 80, width: 100, height: 100,
+      health: 50, maxHealth: 50,
+      lastSpawnTime: 0, spawnInterval: 2500,
+      speed: 4, direction: 1,
+      shootCooldown: 0, shootInterval: 1500
+    };
 
     document.addEventListener("keydown", e => {
       keys[e.key] = true;
@@ -163,27 +189,23 @@
       }
       if (e.key === "e" || e.key === "E") {
         if (timeFreeze && freezeCooldown <= 0) {
-          freezeActive = 10000;
+          freezeActive = 5000;
           freezeCooldown = 90000;
         }
       }
     });
-    document.addEventListener("keyup", e => {
-      keys[e.key] = false;
-    });
+    document.addEventListener("keyup", e => keys[e.key] = false);
 
-    for (let r = 0; r < 4; r++) {
-      for (let c = 0; c < 8; c++) {
-        aliens.push({
-          x: 100 + c * 70,
-          y: 50 + r * 50,
-          width: 40,
-          height: 40,
-          health: r >= 2 ? 2 : 1, // last 2 rows = 2 health
-          shootTimer: Math.random() * 5000 + 2500,
-          hitFlashTimer: 0
-        });
-      }
+    function spawnMinion() {
+      minions.push({
+        x: boss.x + boss.width / 2 - 20,
+        y: boss.y + boss.height + 30,
+        width: 40, height: 40,
+        health: 2,
+        shootTimer: Math.random() * 2500 + 1500,
+        hitFlashTimer: 0,
+        direction: 1
+      });
     }
 
     function spawnPlayerMinions() {
@@ -206,7 +228,7 @@
       ctx.fillText(emoji, x, y);
     }
 
-    function draw(deltaTime) {
+    function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Draw grace period effect
@@ -225,53 +247,54 @@
         ctx.globalAlpha = 1;
       }
 
+      if (trailColor) {
+        ctx.strokeStyle = trailColor;
+        ctx.beginPath();
+        ctx.moveTo(player.x, player.y + 20);
+        ctx.lineTo(player.x - 20, player.y + 20);
+        ctx.lineTo(player.x + 40, player.y + 20);
+        ctx.stroke();
+      }
+
       drawEmoji(player.x, player.y, avatar);
 
-      // Draw minions
+      // Draw player minions
       playerMinions.forEach(minion => {
         drawEmoji(minion.x, minion.y, "🤖", "20px");
       });
 
-      if (trailColor) {
-        ctx.strokeStyle = trailColor;
-        ctx.lineWidth = 3;
-        ctx.globalAlpha = 0.7;
-        ctx.beginPath();
-        ctx.moveTo(player.x + 20, player.y + 20);
-        ctx.lineTo(player.x - 30, player.y + 20);
-        ctx.lineTo(player.x + 70, player.y + 20);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-        ctx.lineWidth = 1;
+      // Draw boss
+      const bossY = boss.y + 20;
+      ctx.font = "80px serif";
+      ctx.fillText("👹", boss.x, bossY + boss.height);
+      ctx.fillStyle = "gray";
+      ctx.fillRect(boss.x, bossY - 15, boss.width, 10);
+      ctx.fillStyle = "lime";
+      ctx.fillRect(boss.x, bossY - 15, boss.width * (boss.health / boss.maxHealth), 10);
 
-        bullets.forEach(b => {
-          ctx.beginPath();
-          ctx.moveTo(b.x + 2, b.y + 10);
-          ctx.lineTo(b.x + 2, b.y + 30);
-          ctx.stroke();
-        });
-      }
-
-      aliens.forEach(alien => {
-        if (alien.hitFlashTimer > 0) {
-          drawEmoji(alien.x, alien.y, "💥");
-          alien.hitFlashTimer -= deltaTime;
+      // Draw boss minions
+      for (let m of minions) {
+        if (m.hitFlashTimer > 0) {
+          drawEmoji(m.x, m.y, "💥");
+          m.hitFlashTimer -= 16;
         } else {
-          let emoji = "👾";
-          if (alien.health === 5) emoji = "👺";
-          else if (alien.health === 4) emoji = "💀";
-          else if (alien.health === 3) emoji = "😈";
-          else if (alien.health === 2) emoji = "👽";
-          drawEmoji(alien.x, alien.y, emoji);
+          drawEmoji(m.x, m.y, "👾");
         }
-      });
+      }
 
       bullets.forEach(b => {
         if (starShooter) {
           ctx.drawImage(starBulletImg, b.x - 6, b.y - 6, 16, 16);
         } else {
-          ctx.fillStyle = "white";
-          ctx.fillRect(b.x, b.y, 4, 10);
+          ctx.fillStyle = b.piercing ? "gold" : "white";
+          ctx.fillRect(b.x, b.y, 4, b.piercing ? 30 : 10);
+          if (trailColor) {
+            ctx.strokeStyle = trailColor;
+            ctx.beginPath();
+            ctx.moveTo(b.x + 2, b.y + (b.piercing ? 30 : 10));
+            ctx.lineTo(b.x + 2, b.y + (b.piercing ? 50 : 30));
+            ctx.stroke();
+          }
         }
       });
 
@@ -279,8 +302,9 @@
       minionBullets.forEach(b => ctx.fillRect(b.x, b.y, 3, 8));
 
       ctx.fillStyle = "red";
-      alienBullets.forEach(b => ctx.fillRect(b.x, b.y, 4, 10));
+      enemyBullets.forEach(b => ctx.fillRect(b.x, b.y, b.width || 4, b.height || 10));
 
+      // Draw homing missiles
       const fancyHomingActive = localStorage.getItem("fancyHomingMissile") === "true";
       if (fancyHomingActive) {
         homingMissiles.forEach(m => {
@@ -296,35 +320,65 @@
       }
     }
 
-    function update(deltaTime) {
+    function update() {
       if (gameOver) return;
 
-      if (keys["ArrowLeft"]) player.x -= 6 * speedMultiplier;
-      if (keys["ArrowRight"]) player.x += 6 * speedMultiplier;
+      if (keys["ArrowLeft"]) player.x -= 5 * speedMultiplier;
+      if (keys["ArrowRight"]) player.x += 5 * speedMultiplier;
       if (keys["ArrowUp"]) player.y -= 3 * speedMultiplier;
       if (keys["ArrowDown"]) player.y += 3 * speedMultiplier;
 
       player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
       player.y = Math.max(520, Math.min(canvas.height - player.height, player.y));
 
-      player.cooldown -= deltaTime;
+      // Update cooldowns
+      player.invulnerable = Math.max(0, player.invulnerable - 16);
+      smokeCooldown = Math.max(0, smokeCooldown - 16);
+      smokeActive = Math.max(0, smokeActive - 16);
+      freezeCooldown = Math.max(0, freezeCooldown - 16);
+      freezeActive = Math.max(0, freezeActive - 16);
+
+      // Player minion logic
+      playerMinions.forEach((minion, mi) => {
+        if (!freezeActive) {
+          minion.x += minion.direction * 2;
+          if (minion.x <= 0 || minion.x + minion.width >= canvas.width) {
+            minion.direction *= -1;
+          }
+
+          minion.shootTimer -= 16;
+          if (minion.shootTimer <= 0) {
+            minionBullets.push({ x: minion.x + 15, y: minion.y });
+            minion.shootTimer = minionFireRateUpgrade ? 1000 : 2000;
+          }
+        }
+      });
+
+      minionBullets.forEach(b => b.y -= 8);
+      minionBullets = minionBullets.filter(b => b.y > 0);
+
+      if (player.cooldown > 0) {
+        player.cooldown -= 16;
+      }
+
       if (keys[" "] && player.cooldown <= 0) {
         shotCount++;
-        const homingMissileEnabled = localStorage.getItem("homingMissile") === "true";
         if (shotCount % 5 === 0 && homingMissileEnabled) {
           // Every 5th shot is a homing missile (only if purchased)
           homingMissiles.push({ x: player.x + 18, y: player.y, vx: 0, vy: -5 });
         } else {
+          const piercing = piercingEnabled && shotCount % 3 === 0 && !tripleShot;
+
           if (tripleShot) {
-            bullets.push({ x: player.x + 18, y: player.y, dx: -1 });
-            bullets.push({ x: player.x + 18, y: player.y, dx: 0 });
-            bullets.push({ x: player.x + 18, y: player.y, dx: 1 });
+            bullets.push({ x: player.x + 18, y: player.y, dx: -1, piercing: false });
+            bullets.push({ x: player.x + 18, y: player.y, dx: 0, piercing: false });
+            bullets.push({ x: player.x + 18, y: player.y, dx: 1, piercing: false });
           } else {
-            bullets.push({ x: player.x + 18, y: player.y, dx: 0 });
+            bullets.push({ x: player.x + 18, y: player.y, dx: 0, piercing });
           }
         }
 
-        // Default fire rate is 400ms (consistent across all levels)
+        // Default fire rate is 400ms
         player.cooldown = 400;
       }
 
@@ -333,6 +387,9 @@
         b.y -= 10;
       });
       bullets = bullets.filter(b => b.y > 0);
+
+      enemyBullets.forEach(b => b.y += 8 * bulletSpeedMultiplier);
+      enemyBullets = enemyBullets.filter(b => b.y < canvas.height);
 
       // Homing missile logic - targets highest health enemy
       const fancyHomingActive = localStorage.getItem("fancyHomingMissile") === "true";
@@ -343,10 +400,15 @@
         let target = null;
         let maxHealth = 0;
 
-        aliens.forEach(a => {
-          if (a.health > maxHealth) {
-            maxHealth = a.health;
-            target = a;
+        // Check boss first, then minions
+        if (boss.health > 0 && boss.health > maxHealth) {
+          maxHealth = boss.health;
+          target = boss;
+        }
+        minions.forEach(minion => {
+          if (minion.health > maxHealth) {
+            maxHealth = minion.health;
+            target = minion;
           }
         });
 
@@ -356,24 +418,18 @@
           const dist = Math.sqrt(dx * dx + dy * dy);
           if (dist < 20) {
             homingMissiles.splice(i, 1);
-            const originalHealth = target.health;
-            target.health -= homingDamage;
-            target.hitFlashTimer = 200;
-            if (target.health <= 0) {
-              aliens.splice(aliens.indexOf(target), 1);
-              const basePoints = rewardScaleUp ? originalHealth : (originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : 1);
-              score += doublePoints ? basePoints * 2 : basePoints;
-              if (aliens.length === 0) {
-                gameOver = true;
-                localStorage.setItem("level2Complete", "true");
-                // Audio disabled
-                updateTotalScore(score);
-                let finalLives = player.lives;
-                if (regeneration && finalLives < (storedLives + (extraLifeBonus ? 1 : 0))) {
-                  finalLives++;
-                }
-                localStorage.setItem("playerLives", finalLives);
-                setTimeout(() => document.getElementById("winScreen").style.display = "flex", 500);
+            if (target === boss) {
+              let dmg = homingDamage;
+              if (bossWeakness) dmg *= 3;
+              boss.health -= dmg;
+            } else {
+              const originalHealth = target.health;
+              target.health -= homingDamage;
+              target.hitFlashTimer = 200;
+              if (target.health <= 0) {
+                minions.splice(minions.indexOf(target), 1);
+                const basePoints = rewardScaleUp ? originalHealth : 1;
+                score += doublePoints ? basePoints * 2 : basePoints;
               }
             }
           } else {
@@ -386,183 +442,153 @@
       });
       homingMissiles = homingMissiles.filter(m => m.y > 0);
 
-      alienBullets.forEach(b => b.y += 6 * bulletSpeedMultiplier);
-      alienBullets = alienBullets.filter(b => b.y < canvas.height);
+      if (!freezeActive) {
+        boss.x += boss.speed * boss.direction;
+        if (boss.x <= 0 || boss.x + boss.width >= canvas.width) boss.direction *= -1;
 
-      // Update cooldowns
-      player.invulnerable = Math.max(0, player.invulnerable - deltaTime);
-      smokeCooldown = Math.max(0, smokeCooldown - deltaTime);
-      smokeActive = Math.max(0, smokeActive - deltaTime);
-      freezeCooldown = Math.max(0, freezeCooldown - deltaTime);
-      freezeActive = Math.max(0, freezeActive - deltaTime);
-
-      // Minion logic
-      playerMinions.forEach((minion, mi) => {
-        minion.x += minion.direction * 2;
-        if (minion.x <= 0 || minion.x + minion.width >= canvas.width) {
-          minion.direction *= -1;
+        boss.shootCooldown -= 16;
+        if (boss.shootCooldown <= 0 && !smokeActive) {
+          enemyBullets.push({ x: boss.x + boss.width / 2 - 6, y: boss.y + boss.height + 20, width: 12, height: 20 });
+          boss.shootCooldown = boss.shootInterval / fireRateMultiplier;
         }
+      }
 
+      // Boss spawn timer only increments when NOT frozen
+      if (!freezeActive) {
+        boss.lastSpawnTime += 16;
+        if (boss.lastSpawnTime >= boss.spawnInterval) {
+          spawnMinion();
+          boss.lastSpawnTime = 0;
+        }
+      }
+
+      for (let m of minions) {
         if (!freezeActive) {
-          minion.shootTimer -= deltaTime;
-          if (minion.shootTimer <= 0) {
-            minionBullets.push({ x: minion.x + 15, y: minion.y });
-            minion.shootTimer = minionFireRateUpgrade ? 1000 : 2000;
+          m.x += m.direction;
+          if (m.x <= 0 || m.x + m.width >= canvas.width) m.direction *= -1;
+          m.shootTimer -= 16;
+          if (m.shootTimer <= 0 && !smokeActive) {
+            enemyBullets.push({ x: m.x + 18, y: m.y + 30 });
+            const baseInterval = Math.random() * 2500 + 1500;
+            m.shootTimer = baseInterval / fireRateMultiplier;
           }
+        }
+      }
+
+      // Minion bullet collisions with enemies
+      minions.forEach((m, mi) => { // Added loop for minions to iterate over
+        minionBullets.forEach((mb, mbi) => {
+          if (mb.x < m.x + m.width && mb.x + 3 > m.x &&
+              mb.y < m.y + m.height && mb.y + 8 > m.y) {
+            minionBullets.splice(mbi, 1);
+            const originalHealth = m.health;
+            const minionBulletDamage = x2Damage ? 2 : 1;
+            m.health -= minionBulletDamage;
+            m.hitFlashTimer = 200;
+            if (m.health <= 0) {
+              minions.splice(mi, 1);
+              const basePoints = rewardScaleUp ? originalHealth : 1;
+              score += doublePoints ? basePoints * 2 : basePoints;
+            }
+          }
+        });
+      });
+
+
+      bullets.forEach((b, bi) => {
+        minions.forEach((m, mi) => {
+          if (b.x < m.x + m.width && b.x + 4 > m.x &&
+              b.y < m.y + m.height && b.y + (b.piercing ? 30 : 10) > m.y) {
+            if (!b.piercing) bullets.splice(bi, 1);
+            const originalHealth = m.health;
+            let dmg = (b.piercing ? 1.5 : 1) * (x2Damage ? 2 : 1);
+            m.health -= dmg;
+            m.hitFlashTimer = 200;
+            if (m.health <= 0) {
+              minions.splice(mi, 1);
+              const basePoints = rewardScaleUp ? originalHealth : 1;
+              score += doublePoints ? basePoints * 2 : basePoints;
+            }
+          }
+        });
+
+        const bossY = boss.y + 20;
+        if (b.x < boss.x + boss.width && b.x + 4 > boss.x &&
+            b.y < bossY + boss.height && b.y + 10 > bossY) {
+          if (!b.piercing) bullets.splice(bi, 1);
+          let dmg = (b.piercing ? 1.5 : 1) * (x2Damage ? 2 : 1);
+          if (bossWeakness) dmg *= 3;
+          boss.health -= dmg;
         }
       });
 
-      minionBullets.forEach(b => b.y -= 8);
-      minionBullets = minionBullets.filter(b => b.y > 0);
+      // Check boss defeat
+      if (boss.health <= 0 && !gameOver) {
+        gameOver = true;
+        score += 50;
+        localStorage.setItem("level3Complete", "true");
+        localStorage.setItem("bossComplete", "true");
 
-      let edgeHit = false;
-      if (!freezeActive) {
-        for (let alien of aliens) {
-          alien.x += alienSpeed * direction;
-          if (alien.x <= 0 || alien.x + alien.width >= canvas.width) edgeHit = true;
-          alien.shootTimer -= deltaTime * alienShootMultiplier;
-          if (alien.shootTimer <= 0 && (!smokeActive || Math.random() > 0.7)) {
-            alienBullets.push({ x: alien.x + 20, y: alien.y + 20 });
-            const baseInterval = Math.random() * 5000 + 2500;
-            alien.shootTimer = baseInterval / fireRateMultiplier;
-          }
+        // Add diamond drop for boss defeat
+        const currentDiamonds = parseInt(localStorage.getItem("playerDiamonds") || "0");
+        localStorage.setItem("playerDiamonds", (currentDiamonds + 1).toString());
+        localStorage.setItem("playerScore", score);
+
+        updateTotalScore(score);
+
+        const gameMode = localStorage.getItem("gameMode") || "normal";
+        const extraLifeBonus = localStorage.getItem("extraLifeBonus") === "true";
+        const startingLives = gameMode === "easy" ? 5 : gameMode === "hard" ? 1 : 3;
+        const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
+        let finalLives = player.lives;
+        if (regeneration && finalLives < startingLives + (extraLifeBonus ? 1 : 0)) {
+          finalLives = Math.min(finalLives + 1, maxLives);
         }
-        if (edgeHit) direction *= -1;
+        localStorage.setItem("playerLives", finalLives);
+
+        const elapsed = Date.now() - gameStartTime;
+        const result = { time: elapsed, score, lives: player.lives, gameMode, date: new Date().toLocaleString() };
+        const board = JSON.parse(localStorage.getItem("scoreboard") || "[]");
+        board.push(result);
+        board.sort((a, b) => a.time - b.time);
+        localStorage.setItem("scoreboard", JSON.stringify(board));
+
+        setTimeout(() => {
+          winScreen.style.display = "flex";
+          document.getElementById('toBossBtn').onclick = () => {
+            window.location.href = "level4.html";
+          };
+        }, 500);
       }
 
-      // Player bullet collisions
-      for (let bi = bullets.length - 1; bi >= 0; bi--) {
-        const b = bullets[bi];
-        let bulletHit = false;
-
-        for (let ai = aliens.length - 1; ai >= 0 && !bulletHit; ai--) {
-          const a = aliens[ai];
-          if (b.x < a.x + a.width && b.x + 4 > a.x &&
-              b.y < a.y + a.height && b.y + 10 > a.y) {
-            bullets.splice(bi, 1);
-            bulletHit = true;
-            const originalHealth = a.health;
-            const bulletDamage = x2Damage ? 2 : 1;
-            a.health -= bulletDamage;
-            a.hitFlashTimer = 200;
-            if (a.health <= 0) {
-              aliens.splice(ai, 1);
-              const basePoints = rewardScaleUp ? originalHealth : (originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : 1);
-              score += doublePoints ? basePoints * 2 : basePoints;
-              if (aliens.length === 0) {
-                gameOver = true;
-                localStorage.setItem("level2Complete", "true");
-                // Save special ability timers
-                localStorage.setItem("smokeCooldown", smokeCooldown);
-                localStorage.setItem("smokeActive", smokeActive);
-                localStorage.setItem("timeFreezeCooldown", freezeCooldown);
-                localStorage.setItem("timeFreezeActive", freezeActive);
-                updateTotalScore(score);
-
-                const elapsed = Date.now() - gameStartTime;
-                const result = { time: elapsed, score, lives: player.lives, gameMode, date: new Date().toLocaleString() };
-                const board = JSON.parse(localStorage.getItem("scoreboard") || "[]");
-                board.push(result);
-                board.sort((a, b) => a.time - b.time);
-                localStorage.setItem("scoreboard", JSON.stringify(board));
-
-                setTimeout(() => {
-                  document.getElementById("winScreen").style.display = "flex";
-                }, 500);
-              }
-            }
-            break;
-          }
-        }
-      }
-
-      // Minion bullet collisions
-      for (let bi = minionBullets.length - 1; bi >= 0; bi--) {
-        const b = minionBullets[bi];
-        let bulletHit = false;
-
-        for (let ai = aliens.length - 1; ai >= 0 && !bulletHit; ai--) {
-          const a = aliens[ai];
-          if (b.x < a.x + a.width && b.x + 3 > a.x &&
-              b.y < a.y + a.height && b.y + 8 > a.y) {
-            minionBullets.splice(bi, 1);
-            bulletHit = true;
-            const originalHealth = a.health;
-            const minionBulletDamage = x2Damage ? 2 : 1;
-            a.health -= minionBulletDamage;
-            a.hitFlashTimer = 200;
-            if (a.health <= 0) {
-              aliens.splice(ai, 1);
-              const basePoints = rewardScaleUp ? originalHealth : (originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : 1);
-              score += doublePoints ? basePoints * 2 : basePoints;
-              if (aliens.length === 0) {
-                gameOver = true;
-                localStorage.setItem("level2Complete", "true");
-                // Save special ability timers
-                localStorage.setItem("smokeCooldown", smokeCooldown);
-                localStorage.setItem("smokeActive", smokeActive);
-                localStorage.setItem("timeFreezeCooldown", freezeCooldown);
-                localStorage.setItem("timeFreezeActive", freezeActive);
-                updateTotalScore(score);
-
-                const gameMode = localStorage.getItem("gameMode") || "normal";
-                const extraLifeBonus = localStorage.getItem("extraLifeBonus") === "true";
-                const startingLives = gameMode === "easy" ? 5 : gameMode === "hard" ? 1 : 3;
-                const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
-                let finalLives = player.lives;
-                if (regeneration && finalLives < startingLives + (extraLifeBonus ? 1 : 0)) {
-                  finalLives = Math.min(finalLives + 1, maxLives);
-                }
-                localStorage.setItem("playerLives", finalLives);
-
-                const elapsed = Date.now() - gameStartTime;
-                const result = { time: elapsed, score, lives: player.lives, gameMode, date: new Date().toLocaleString() };
-                const board = JSON.parse(localStorage.getItem("scoreboard") || "[]");
-                board.push(result);
-                board.sort((a, b) => a.time - b.time);
-                localStorage.setItem("scoreboard", JSON.stringify(board));
-
-                setTimeout(() => {
-                  document.getElementById("winScreen").style.display = "flex";
-                }, 500);
-              }
-            }
-            break;
-          }
-        }
-      }
-
-      // Alien bullets hit minions
-      for (let bi = alienBullets.length - 1; bi >= 0; bi--) {
-        const b = alienBullets[bi];
-        for (let mi = playerMinions.length - 1; mi >= 0; mi--) {
-          const minion = playerMinions[mi];
-          if (b.x < minion.x + minion.width && b.x + 4 > minion.x &&
-              b.y < minion.y + minion.height && b.y + 10 > minion.y) {
-            alienBullets.splice(bi, 1);
+      // Enemy bullets hit player minions
+      enemyBullets.forEach((b, bi) => {
+        playerMinions.forEach((minion, mi) => {
+          if (b.x < minion.x + minion.width && b.x + (b.width || 4) > minion.x &&
+              b.y < minion.y + minion.height && b.y + (b.height || 10) > minion.y) {
+            enemyBullets.splice(bi, 1);
             minion.health--;
             if (minion.health <= 0) {
               playerMinions.splice(mi, 1);
             }
-            break;
           }
-        }
-      }
+        });
+      });
 
-      for (let bi = alienBullets.length - 1; bi >= 0; bi--) {
-        const b = alienBullets[bi];
-        if (b.x < player.x + player.width && b.x + 4 > player.x &&
-            b.y < player.y + player.height && b.y + 10 > player.y) {
-          alienBullets.splice(bi, 1);
+      // Enemy bullets hit player
+      enemyBullets.forEach((b, bi) => {
+        if (b.x < player.x + player.width && b.x + (b.width || 4) > player.x &&
+            b.y < player.y + player.height && b.y + (b.height || 10) > player.y) {
+          enemyBullets.splice(bi, 1);
           if (player.invulnerable <= 0) {
             player.lives--;
             if (player.lives <= 0) {
               gameOver = true;
               updateTotalScore(score);
-              setTimeout(() => document.getElementById("loseScreen").style.display = "flex", 300);
+              setTimeout(() => loseScreen.style.display = "flex", 300);
             } else {
               bullets = [];
-              alienBullets = [];
+              enemyBullets = [];
               player.x = 400;
               player.y = 550;
               player.cooldown = 0;
@@ -570,60 +596,48 @@
             }
           }
         }
-      }
+      });
 
       const elapsed = Date.now() - gameStartTime;
-      let cooldownText = "";
+      let cooldownInfo = "";
       if (smokeCooldown > 0) {
-        cooldownText += ` | Smoke: ${Math.ceil(smokeCooldown / 1000)}s`;
+        cooldownInfo += ` | Smoke: ${Math.ceil(smokeCooldown / 1000)}s`;
       }
       if (freezeCooldown > 0) {
-        cooldownText += ` | Freeze: ${Math.ceil(freezeCooldown / 1000)}s`;
+        cooldownInfo += ` | Freeze: ${Math.ceil(freezeCooldown / 1000)}s`;
       }
-      hud.innerText = `Coins: ${score} | Lives: ${player.lives} | Time: ${formatTime(elapsed)}${cooldownText}`;
+      hud.innerText = `Score: ${score} | Lives: ${player.lives} | Time: ${formatTime(elapsed)} | Diamonds: ${diamonds}${cooldownInfo}`;
     }
 
-    function loop(time) {
-      const delta = time - (loop.last || 0);
-      loop.last = time;
-      update(delta);
-      draw(delta);
-      requestAnimationFrame(loop);
+    function loop() {
+      update();
+      draw();
+      if (!gameOver) requestAnimationFrame(loop);
     }
 
-    requestAnimationFrame(loop);
-
-    toBossBtn.onclick = () => {
-      localStorage.setItem("playerLives", player.lives);
-      localStorage.setItem("playerScore", score);
-      window.location.href = "level3.html";
-    };
+    loop();
 
     backDashboardBtn.onclick = () => {
       updateTotalScore(score);
       window.location.href = "dashboard.html";
     };
 
+    window.onbeforeunload = () => updateTotalScore(score);
+
     // Touchscreen support
     let autoFire = false;
     let autoFireInterval;
 
-    // Show touchscreen controls on all devices
-    const touchControls = document.createElement('div');
-    touchControls.innerHTML = `
-      <button id="leftBtn" style="position: absolute; bottom: 20px; left: 20px; width: 60px; height: 60px; background: rgba(0,255,255,0.7); border: none; border-radius: 50%; color: white; font-size: 24px;">←</button>
-      <button id="rightBtn" style="position: absolute; bottom: 20px; right: 20px; width: 60px; height: 60px; background: rgba(0,255,255,0.7); border: none; border-radius: 50%; color: white; font-size: 24px;">→</button>
-      <button id="fireBtn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background: rgba(255,0,0,0.7); border: none; border-radius: 50%; color: white; font-size: 16px; font-weight: bold;">FIRE</button>
-      <button id="autoFireBtn" style="position: absolute; top: 50px; right: 20px; padding: 10px; background: rgba(255,255,255,0.2); border: 1px solid white; border-radius: 5px; color: white;">Auto-Fire: OFF</button>
-      <div id="abilityButtons" style="position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px;">
-        <button id="minionBtn" style="display: ${localStorage.getItem("minionClones") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (M)</button>
-        <button id="freezeBtn" style="display: ${localStorage.getItem("timeFreeze") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (E)</button>
-        <button id="smokeBtn" style="display: ${localStorage.getItem("smokeBomb") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (W)</button>
-      </div>
-    `;
-    document.body.appendChild(touchControls);
+    if (minionClones) {
+      document.getElementById('minionBtn').style.display = 'block';
+    }
+    if (timeFreeze) {
+      document.getElementById('freezeBtn').style.display = 'block';
+    }
+    if (smokeBomb) {
+      document.getElementById('smokeBtn').style.display = 'block';
+    }
 
-    // Touch controls - both touch and mouse events
     document.getElementById('leftBtn').addEventListener('touchstart', (e) => {
       e.preventDefault();
       keys["ArrowLeft"] = true;
@@ -658,7 +672,6 @@
       keys["ArrowRight"] = false;
     });
 
-    // Fire button
     document.getElementById('fireBtn').addEventListener('click', () => {
       if (player.cooldown <= 0 && !gameOver) {
         keys[" "] = true;
@@ -666,7 +679,6 @@
       }
     });
 
-    // Auto-fire toggle with R key support
     document.getElementById('autoFireBtn').addEventListener('click', () => {
       autoFire = !autoFire;
       document.getElementById('autoFireBtn').textContent = autoFire ? 'Auto-Fire: ON' : 'Auto-Fire: OFF';
@@ -683,7 +695,6 @@
       }
     });
 
-    // R key for auto-fire toggle
     document.addEventListener('keydown', (e) => {
       if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
@@ -691,60 +702,35 @@
       }
     });
 
-      // Auto-fire
-      document.getElementById('autoFireBtn').addEventListener('click', () => {
-        autoFire = !autoFire;
-        document.getElementById('autoFireBtn').textContent = `Auto-Fire: ${autoFire ? 'ON' : 'OFF'}`;
-        if (autoFire) {
-          autoFireInterval = setInterval(() => {
-            if (!gameOver && player.cooldown <= 0) {
-              keys[" "] = true;
-              setTimeout(() => keys[" "] = false, 50);
-            }
-          }, 200);
-        } else {
-          clearInterval(autoFireInterval);
-        }
-      });
-
-      // Ability buttons
-      document.getElementById('minionBtn').addEventListener('click', () => {
-        const event = new KeyboardEvent('keydown', { key: 'M' });
-        document.dispatchEvent(event);
-      });
-
-      document.getElementById('freezeBtn').addEventListener('click', () => {
-        const event = new KeyboardEvent('keydown', { key: 'E' });
-        document.dispatchEvent(event);
-      });
-
-      document.getElementById('smokeBtn').addEventListener('click', () => {
-        const event = new KeyboardEvent('keydown', { key: 'W' });
-        document.dispatchEvent(event);
-      });
-
-      // Tap to shoot
-    canvas.addEventListener('click', () => {
-      if (!autoFire) keys[" "] = true;
-    });
-
-    // R key for auto-fire
-    document.addEventListener("keydown", e => {
-      if (e.key === "r" || e.key === "R") {
-        autoFire = !autoFire;
-        if (document.getElementById('autoFireBtn')) {
-          document.getElementById('autoFireBtn').textContent = `Auto-Fire: ${autoFire ? 'ON' : 'OFF'}`;
-        }
-        if (autoFire) {
-          autoFireInterval = setInterval(() => keys[" "] = true, 100);
-        } else {
-          clearInterval(autoFireInterval);
-          keys[" "] = false;
-        }
+    document.getElementById('minionBtn').addEventListener('click', () => {
+      if (minionClones && !minionsSpawned) {
+        spawnPlayerMinions();
+        minionsSpawned = true;
       }
     });
 
+    document.getElementById('freezeBtn').addEventListener('click', () => {
+      if (timeFreeze && freezeCooldown <= 0) {
+        freezeActive = 5000;
+        freezeCooldown = 90000;
+      }
+    });
 
+    document.getElementById('smokeBtn').addEventListener('click', () => {
+      if (smokeBomb && smokeCooldown <= 0) {
+        smokeActive = 10000;
+        smokeCooldown = 20000;
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.tagName || e.target.tagName.toLowerCase() !== 'button') {
+        if (player.cooldown <= 0 && !gameOver) {
+          keys[" "] = true;
+          setTimeout(() => keys[" "] = false, 50);
+        }
+      }
+    });
   </script>
 </body>
 </html>
