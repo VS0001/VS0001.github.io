@@ -129,7 +129,7 @@
     const minionHealthLevel = parseInt(localStorage.getItem("minionHealthLevel")) || "0";
     const minionFireRateUpgrade = localStorage.getItem("minionFireRateUpgrade") === "true";
     const smokeBomb = localStorage.getItem("smokeBomb") === "true";
-    const gracePeriod = localStorage.getItem("gracePeriod") === "true";
+    const gracePeriod = true; // Always active
     const timeFreeze = localStorage.getItem("timeFreeze") === "true";
     const rewardScaleUp = localStorage.getItem("rewardScaleUp") === "true"; // Reward Scale-Up upgrade
 
@@ -553,8 +553,8 @@
         const b = alienBullets[bi];
         if (b.x < player.x + player.width && b.x + 4 > player.x &&
             b.y < player.y + player.height && b.y + 10 > player.y) {
-          alienBullets.splice(bi, 1);
           if (player.invulnerable <= 0) {
+            alienBullets.splice(bi, 1);
             player.lives--;
             if (player.lives <= 0) {
               gameOver = true;
