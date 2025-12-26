@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🍉 Fruit Merge Game</title>
+  <!-- Inspired by Suika Game concept - Original implementation -->
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      text-align: center;
+      background: #fff;
+    }
+    canvas {
+      background: #f8f8f8;
+      border: 3px solid #60b46c;
+      border-radius: 10px;
+      margin: 10px auto;
+      display: block;
+    }
+    #scoreboard {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    #nextFruit {
+      font-size: 22px;
+      margin-top: 5px;
+    }
+    #win, #gameover {
+      font-size: 28px;
+      display: none;
+      margin-top: 10px;
+    }
+    #win {
+      color: green;
+    }
+    #gameover {
+      color: red;
+    }
+    .button-container {
+      margin-top: 20px;
+    }
+    .back-btn {
+      background-color: #60b46c;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      font-family: Verdana;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    .back-btn:hover {
+      background-color: #4b9454;
+    }
+
+    /* Zombie Survivor Game Card Styles */
+    .zombie-card {
+      background: #333;
+      color: #fff;
+      border: 2px solid #e74c3c;
+      border-radius: 10px;
+      padding: 20px;
+      width: 250px;
+      font-size: 14px;
+      margin: 20px auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .zombie-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    }
+    .zombie-card h3 {
+      margin: 0 0 15px 0;
+      color: #e74c3c;
+      text-align: center;
+      font-size: 24px;
+      text-shadow: 0 0 5px rgba(255, 255, 255, 0.7);
+    }
+    .zombie-card p {
+      margin-bottom: 15px;
+      line-height: 1.4;
+    }
+    .zombie-card a.project-link {
+      background-color: #e74c3c;
+      color: white;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-family: Verdana;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+      margin-top: auto; /* Pushes the button to the bottom */
+    }
+    .zombie-card a.project-link:hover {
+      background-color: #c0392b;
+    }
+
+    /* Animation */
+    @keyframes pulse {
+      0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+      50% { transform: scale(1.03); box-shadow: 0 6px 12px rgba(231, 76, 60, 0.5); }
+      100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); }
+    }
+    .zombie-card.animated {
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body>
+  <div id="scoreboard">
+    Score: <span id="score">0</span> | High Score: <span id="highscore">0</span> | Time: <span id="gameTimer">00:00</span>
+  </div>
+  <div id="nextFruit">Next: <span id="nextEmoji"></span></div>
+  <div id="win">🎉 YOU GOT A WATERMELON! 🎉</div>
+  <div id="gameover">💀 Game Over! Refresh to try again 💀</div>
+
+  <div style="display: flex; align-items: flex-start; justify-content: center; gap: 20px; flex-wrap: wrap;">
+    <!-- Merging Guide -->
+    <div style="background: rgba(96, 180, 108, 0.1); border: 2px solid #60b46c; border-radius: 10px; padding: 15px; width: 200px; font-size: 14px;">
+      <h3 style="margin: 0 0 10px 0; color: #60b46c; text-align: center;">🔄 Merging Guide</h3>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍒 + 🍒</span>
+          <span>=</span>
+          <span>🍋</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍋 + 🍋</span>
+          <span>=</span>
+          <span>🍎</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍎 + 🍎</span>
+          <span>=</span>
+          <span>🍑</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍑 + 🍑</span>
+          <span>=</span>
+          <span>🍊</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍊 + 🍊</span>
+          <span>=</span>
+          <span>🍍</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍍 + 🍍</span>
+          <span>=</span>
+          <span>🥝</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🥝 + 🥝</span>
+          <span>=</span>
+          <span>🍈</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍈 + 🍈</span>
+          <span>=</span>
+          <span>🍓</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🍓 + 🍓</span>
+          <span>=</span>
+          <span>🫐</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span>🫐 + 🫐</span>
+          <span>=</span>
+          <span>🥭</span>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; font-weight: bold; color: #e74c3c;">
+          <span>🥭 + 🥭</span>
+          <span>=</span>
+          <span>🍉</span>
+        </div>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">
+        Goal: Reach the 🍉 Watermelon!
+      </div>
+    </div>
+
+    <!-- Game Canvas -->
+    <canvas id="game" width="400" height="600"></canvas>
+
+    <!-- Best Times Sidebar -->
+    <div style="background: rgba(96, 180, 108, 0.1); border: 2px solid #60b46c; border-radius: 10px; padding: 15px; width: 200px; font-size: 14px;">
+      <h3 style="margin: 0 0 10px 0; color: #60b46c; text-align: center;">🏆 Best Times</h3>
+      <div id="bestTimesList" style="display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto;">
+        <div style="color: #666; text-align: center;">No times recorded yet!</div>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">
+        Times for reaching 🍉
+      </div>
+
+      <h3 style="margin: 15px 0 10px 0; color: #60b46c; text-align: center;">📊 Stats</h3>
+      <div id="statsDisplay" style="font-size: 11px; max-height: 300px; overflow-y: auto;">
+        <div>🍒 Cherries: <span id="statCherries">0</span></div>
+        <div>🍋 Lemons: <span id="statLemons">0</span></div>
+        <div>🍎 Apples: <span id="statApples">0</span></div>
+        <div>🍑 Peaches: <span id="statPeaches">0</span></div>
+        <div>🍊 Oranges: <span id="statOranges">0</span></div>
+        <div>🍍 Pineapples: <span id="statPineapples">0</span></div>
+        <div>🥝 Kiwis: <span id="statKiwis">0</span></div>
+        <div>🍈 Melons: <span id="statMelons">0</span></div>
+        <div>🍓 Berries: <span id="statBerries">0</span></div>
+        <div>🫐 Blueberries: <span id="statBlueberries">0</span></div>
+        <div>🥭 Mangos: <span id="statMangos">0</span></div>
+        <hr style="margin: 8px 0; border-color: rgba(96, 180, 108, 0.3);">
+        <div>⏱️ Time Played: <span id="statTime">0:00</span></div>
+        <div>🎮 Games Started: <span id="statGames">0</span></div>
+        <div>💀 Deaths: <span id="statDeaths">0</span></div>
+        <div>🏆 Wins: <span id="statWins">0</span></div>
+        <div>💯 Total Score: <span id="statTotalScore">0</span></div>
+      </div>
+    </div>
+
+    <!-- Zombie Survivor Game Card -->
+    <div class="zombie-card animated">
+      <h3>🧟 Zombie Survivor</h3>
+      <p>A thrilling game where you must survive hordes of zombies. Can you last the longest?</p>
+      <a href="zombie-survivor/index.html" class="project-link">Play Now!</a>
+    </div>
+  </div>
+
+  <div class="button-container">
+    <button class="back-btn" onclick="saveGame()" style="margin-right: 10px;">💾 Save Game</button>
+    <button class="back-btn" onclick="showLoadMenu()" style="margin-right: 10px;">📁 Load Game</button>
+    <a href="index.html" class="back-btn">← Back to Portfolio</a>
+  </div>
+
+  <div id="loadMenu" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.5); z-index: 1000;">
+    <h3 style="color: black; margin-top: 0;">Load Saved Game</h3>
+    <div id="savedGamesList" style="color: black;"></div>
+    <button onclick="closeLoadMenu()" style="margin-top: 10px;">Close</button>
+  </div>
+
+  <!-- Game Over Modal - Modified to include back button -->
+  <div id="gameOver" class="modal">
+      <h2>Game Over!</h2>
+      <p>Final Score: <span id="finalScore"></span></p>
+      <button onclick="restartGame()">Play Again</button>
+      <button onclick="window.location.href='index.html'" style="margin-top: 10px;">← Back to Portfolio</button>
+    </div>
+
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const scoreEl = document.getElementById("score");
+    const highscoreEl = document.getElementById("highscore");
+    const nextEmoji = document.getElementById("nextEmoji");
+    const winMsg = document.getElementById("win");
+    const gameOverMsg = document.getElementById("gameover");
+
+    const FRUITS = [
+      { emoji: "🍒", radius: 15 },
+      { emoji: "🍋", radius: 20 },
+      { emoji: "🍎", radius: 25 },
+      { emoji: "🍑", radius: 30 },
+      { emoji: "🍊", radius: 40 },
+      { emoji: "🍍", radius: 50 },
+      { emoji: "🥝", radius: 60 },
+      { emoji: "🍈", radius: 70 },
+      { emoji: "🍓", radius: 80 },
+      { emoji: "🫐", radius: 90 },
+      { emoji: "🥭", radius: 100 },
+      { emoji: "🍉", radius: 120 }
+    ];
+
+    let score = 0;
+    let highscore = parseInt(localStorage.getItem("suika-high")) || 0;
+    highscoreEl.textContent = highscore;
+
+    class Fruit {
+      constructor(x, y, level) {
+        this.x = x;
+        this.y = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.level = level;
+        this.radius = FRUITS[level].radius;
+        this.emoji = FRUITS[level].emoji;
+        this.active = true;
+        this.mass = this.radius * 0.5;
+        this.friction = 0.96;
+        this.bounceDecay = 0.3;
+        this.settled = false;
+        this.settleTime = 0;
+      }
+
+      draw() {
+        // Draw round outline to show radius
+        ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.font = `${this.radius * 2}px serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(this.emoji, this.x, this.y);
+      }
+
+      update() {
+        if (!this.active) return;
+
+        // Apply gravity
+        this.vy += 0.4;
+
+        // Apply velocity
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Horizontal boundaries with better bounce
+        if (this.x - this.radius < 0) {
+          this.x = this.radius;
+          this.vx *= -this.bounceDecay;
+        }
+        if (this.x + this.radius > canvas.width) {
+          this.x = canvas.width - this.radius;
+          this.vx *= -this.bounceDecay;
+        }
+
+        // Ground collision with reduced bounce
+        if (this.y + this.radius > canvas.height) {
+          this.y = canvas.height - this.radius;
+          this.vy *= -this.bounceDecay;
+          this.vx *= this.friction;
+
+          // Stop tiny bounces more aggressively
+          if (Math.abs(this.vy) < 1.0) {
+            this.vy = 0;
+            this.settleTime++;
+          }
+          if (Math.abs(this.vx) < 0.2) {
+            this.vx = 0;
+          }
+        }
+
+        // Apply air resistance -- even though I don't need it
+        this.vx *= 0.999;
+
+        // Check if fruit is settled
+        if (Math.abs(this.vx) < 0.1 && Math.abs(this.vy) < 0.1 && this.settleTime > 10) {
+          this.settled = true;
+        }
+      }
+
+      collide(other) {
+        const dx = other.x - this.x;
+        const dy = other.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        return dist < this.radius + other.radius;
+      }
+
+      resolveCollision(other) {
+        const dx = other.x - this.x;
+        const dy = other.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        const overlap = this.radius + other.radius - dist;
+
+        if (overlap > 0) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const totalMass = this.mass + other.mass;
+
+          // Separate fruits with reduced force
+          const pushA = overlap * (other.mass / totalMass) * 0.3;
+          const pushB = overlap * (this.mass / totalMass) * 0.3;
+
+          this.x -= nx * pushA;
+          this.y -= ny * pushA;
+          other.x += nx * pushB;
+          other.y += ny * pushB;
+
+          // Calculate relative velocity
+          const dvx = other.vx - this.vx;
+          const dvy = other.vy - this.vy;
+          const dvn = dvx * nx + dvy * ny;
+
+          // Don't resolve if velocities are separating
+          if (dvn > 0) return;
+
+          // Apply collision response with reduced bounce
+          const impulse = 1.2 * dvn / totalMass;
+          this.vx += impulse * other.mass * nx * 0.4;
+          this.vy += impulse * other.mass * ny * 0.4;
+          other.vx -= impulse * this.mass * nx * 0.4;
+          other.vy -= impulse * this.mass * ny * 0.4;
+
+          // Significantly reduce energy to prevent bouncing
+          this.vx *= 0.7;
+          this.vy *= 0.7;
+          other.vx *= 0.7;
+          other.vy *= 0.7;
+        }
+      }
+    }
+
+    let fruits = [];
+    let dropping = null;
+    let nextLevel = randomStartLevel();
+    let canDrop = true;
+    let gameOver = false;
+    const DEATH_LINE = 100; // Death line height from top -- DO NOT CROSS :)
+
+    // Timer variables
+    let gameStartTime = null;
+    let gameTimerInterval = null;
+    const gameTimerEl = document.getElementById("gameTimer");
+
+    // Comprehensive Stats
+    let stats = {
+      cherriesMerged: parseInt(localStorage.getItem('fruitMerge-cherriesMerged') || '0'),
+      lemonsMerged: parseInt(localStorage.getItem('fruitMerge-lemonsMerged') || '0'),
+      applesMerged: parseInt(localStorage.getItem('fruitMerge-applesMerged') || '0'),
+      peachesMerged: parseInt(localStorage.getItem('fruitMerge-peachesMerged') || '0'),
+      orangesMerged: parseInt(localStorage.getItem('fruitMerge-orangesMerged') || '0'),
+      pineapplesMerged: parseInt(localStorage.getItem('fruitMerge-pineapplesMerged') || '0'),
+      kiwisMerged: parseInt(localStorage.getItem('fruitMerge-kiwisMerged') || '0'),
+      melonsMerged: parseInt(localStorage.getItem('fruitMerge-melonsMerged') || '0'),
+      berriesMerged: parseInt(localStorage.getItem('fruitMerge-berriesMerged') || '0'),
+      blueberriesMerged: parseInt(localStorage.getItem('fruitMerge-blueberriesMerged') || '0'),
+      mangosMerged: parseInt(localStorage.getItem('fruitMerge-mangosMerged') || '0'),
+      totalTimePlayed: parseInt(localStorage.getItem('fruitMerge-totalTimePlayed') || '0'),
+      gamesStarted: parseInt(localStorage.getItem('fruitMerge-gamesStarted') || '0'),
+      deaths: parseInt(localStorage.getItem('fruitMerge-deaths') || '0'),
+      wins: parseInt(localStorage.getItem('fruitMerge-wins') || '0'),
+      totalScoreAllFruits: parseInt(localStorage.getItem('fruitMerge-totalScoreAllFruits') || '0')
+    };
+
+    function randomStartLevel() {
+      return Math.floor(Math.random() * 4);
+    }
+
+    function spawnDroppingFruit() {
+      if (gameOver) return;
+
+      // Start timer on first fruit spawn
+      if (!gameStartTime) {
+        startGameTimer();
+        stats.gamesStarted++;
+        localStorage.setItem('fruitMerge-gamesStarted', stats.gamesStarted);
+      }
+
+      dropping = new Fruit(canvas.width / 2, 50, nextLevel);
+      nextLevel = randomStartLevel();
+      nextEmoji.textContent = FRUITS[nextLevel].emoji;
+      canDrop = true;
+    }
+
+    function startGameTimer() {
+      gameStartTime = Date.now();
+      gameTimerInterval = setInterval(updateGameTimer, 1000);
+    }
+
+    function updateGameTimer() {
+      if (!gameStartTime || gameOver) return;
+      const elapsed = Math.floor((Date.now() - gameStartTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      gameTimerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function stopGameTimer() {
+      if (gameTimerInterval) {
+        clearInterval(gameTimerInterval);
+        gameTimerInterval = null;
+      }
+    }
+
+    function getGameTime() {
+      if (!gameStartTime) return 0;
+      return Math.floor((Date.now() - gameStartTime) / 1000);
+    }
+
+    function saveBestTime(timeInSeconds) {
+      const bestTimes = JSON.parse(localStorage.getItem('fruitMerge-bestTimes') || '[]');
+      const newTime = {
+        time: timeInSeconds,
+        date: new Date().toLocaleDateString(),
+        timestamp: Date.now()
+      };
+
+      bestTimes.push(newTime);
+      bestTimes.sort((a, b) => a.time - b.time); // Sort by time (fastest first)
+
+      // Keep only top 10 times
+      if (bestTimes.length > 10) {
+        bestTimes.splice(10);
+      }
+
+      localStorage.setItem('fruitMerge-bestTimes', JSON.stringify(bestTimes));
+      updateBestTimesList();
+    }
+
+    function updateBestTimesList() {
+      const bestTimes = JSON.parse(localStorage.getItem('fruitMerge-bestTimes') || '[]');
+      const listEl = document.getElementById('bestTimesList');
+
+      if (bestTimes.length === 0) {
+        listEl.innerHTML = '<div style="color: #666; text-align: center;">No times recorded yet!</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      bestTimes.forEach((timeRecord, index) => {
+        const minutes = Math.floor(timeRecord.time / 60);
+        const seconds = timeRecord.time % 60;
+        const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        const timeDiv = document.createElement('div');
+        timeDiv.style.cssText = 'display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid rgba(96, 180, 108, 0.3);';
+        timeDiv.innerHTML = `
+          <span>${index + 1}.</span>
+          <span style="font-weight: bold;">${timeString}</span>
+        `;
+        listEl.appendChild(timeDiv);
+      });
+    }
+
+    function handleMerges() {
+      let mergePairs = [];
+
+      for (let i = 0; i < fruits.length; i++) {
+        for (let j = i + 1; j < fruits.length; j++) {
+          const a = fruits[i], b = fruits[j];
+          // Simplified merge logic: just check if same level fruits are colliding
+          if (a.active && b.active && a.level === b.level && a.collide(b)) {
+            mergePairs.push([a, b]);
+          }
+        }
+      }
+
+      for (const [a, b] of mergePairs) {
+        a.active = false;
+        b.active = false;
+        const newLevel = a.level + 1;
+
+        if (newLevel >= FRUITS.length) continue;
+
+        // Track merges by fruit type
+        const mergeNames = ['cherriesMerged', 'lemonsMerged', 'applesMerged', 'peachesMerged', 
+                            'orangesMerged', 'pineapplesMerged', 'kiwisMerged', 'melonsMerged', 
+                            'berriesMerged', 'blueberriesMerged', 'mangosMerged'];
+        if (a.level < mergeNames.length) {
+          stats[mergeNames[a.level]]++;
+          localStorage.setItem('fruitMerge-' + mergeNames[a.level], stats[mergeNames[a.level]]);
+        }
+
+        const x = (a.x + b.x) / 2;
+        const y = (a.y + b.y) / 2 - 5; // Reduced upward offset
+        const newFruit = new Fruit(x, y, newLevel);
+        newFruit.vy = -1; // Reduced upward bounce when merging
+        newFruit.vx = 0; // No horizontal movement
+        fruits.push(newFruit);
+
+        const pointsEarned = (newLevel + 1) * 10;
+        score += pointsEarned;
+        stats.totalScoreAllFruits += pointsEarned;
+        localStorage.setItem('fruitMerge-totalScoreAllFruits', stats.totalScoreAllFruits);
+        scoreEl.textContent = score;
+
+        if (newLevel === FRUITS.length - 1) {
+          winMsg.style.display = "block";
+          stopGameTimer();
+          const gameTime = getGameTime();
+          if (gameTime > 0) {
+            saveBestTime(gameTime);
+            stats.wins++;
+            localStorage.setItem('fruitMerge-wins', stats.wins);
+          }
+        }
+
+        if (score > highscore) {
+          highscore = score;
+          highscoreEl.textContent = highscore;
+          localStorage.setItem("suika-high", highscore);
+        }
+      }
+
+      fruits = fruits.filter(f => f.active);
+    }
+
+    function checkGameOver() {
+      // Check if any fruit is above the death line for too long
+      for (const fruit of fruits) {
+        if (fruit.y - fruit.radius < DEATH_LINE && fruit.settled) {
+          gameOver = true;
+          gameOverMsg.style.display = "block";
+
+          // Track death and total time
+          stats.deaths++;
+          const sessionTime = getGameTime();
+          stats.totalTimePlayed += sessionTime;
+          localStorage.setItem('fruitMerge-deaths', stats.deaths);
+          localStorage.setItem('fruitMerge-totalTimePlayed', stats.totalTimePlayed);
+          stopGameTimer();
+          return;
+        }
+      }
+
+      // Also check the dropping fruit
+      if (dropping && dropping.y - dropping.radius < DEATH_LINE) {
+        for (const fruit of fruits) {
+          if (dropping.collide(fruit)) {
+            gameOver = true;
+            gameOverMsg.style.display = "block";
+
+            // Track death and total time
+            stats.deaths++;
+            const sessionTime = getGameTime();
+            stats.totalTimePlayed += sessionTime;
+            localStorage.setItem('fruitMerge-deaths', stats.deaths);
+            localStorage.setItem('fruitMerge-totalTimePlayed', stats.totalTimePlayed);
+            stopGameTimer();
+            return;
+          }
+        }
+      }
+    }
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (!dropping || !canDrop || gameOver) return;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      dropping.x = Math.max(dropping.radius, Math.min(canvas.width - dropping.radius, mouseX));
+    });
+
+    canvas.addEventListener("click", (e) => {
+      if (!dropping || !canDrop || gameOver) return;
+
+      // Drop the fruit
+      fruits.push(dropping);
+      dropping = null;
+      canDrop = false;
+
+      // Wait before spawning next fruit to prevent auto-dropping
+      setTimeout(spawnDroppingFruit, 1000);
+    });
+
+    function loop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw death line
+      ctx.strokeStyle = "rgba(255, 0, 0, 0.3)";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(0, DEATH_LINE);
+      ctx.lineTo(canvas.width, DEATH_LINE);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Update and draw dropping fruit
+      if (dropping) {
+        dropping.draw();
+      }
+
+      // Update all fruits
+      for (let i = 0; i < fruits.length; i++) {
+        fruits[i].update();
+        for (let j = i + 1; j < fruits.length; j++) {
+          if (fruits[i].collide(fruits[j])) {
+            fruits[i].resolveCollision(fruits[j]);
+          }
+        }
+      }
+
+      handleMerges();
+      checkGameOver();
+      fruits.forEach(f => f.draw());
+
+      if (!gameOver) requestAnimationFrame(loop);
+    }
+
+    function saveGame() {
+      const gameState = {
+        fruits: fruits.map(f => ({
+          x: f.x, y: f.y, vx: f.vx, vy: f.vy, level: f.level,
+          mass: f.mass, settled: f.settled, settleTime: f.settleTime
+        })),
+        score: score,
+        nextLevel: nextLevel,
+        gameOver: gameOver,
+        created: new Date().toLocaleString()
+      };
+
+      let savedGames = JSON.parse(localStorage.getItem('fruitMerge-savedGames') || '[]');
+
+      if (savedGames.length >= 3) {
+        if (confirm('You have 3 saved games. Replace the oldest one?')) {
+          savedGames.shift();
+        } else {
+          return;
+        }
+      }
+
+      savedGames.push(gameState);
+      localStorage.setItem('fruitMerge-savedGames', JSON.stringify(savedGames));
+      alert('Game saved successfully!');
+    }
+
+    function loadGame(index) {
+      const savedGames = JSON.parse(localStorage.getItem('fruitMerge-savedGames') || '[]');
+      if (index >= 0 && index < savedGames.length) {
+        const gameState = savedGames[index];
+
+        // Clear current game
+        fruits = [];
+
+        // Restore game state
+        gameState.fruits.forEach(fruitData => {
+          const fruit = new Fruit(fruitData.x, fruitData.y, fruitData.level);
+          fruit.vx = fruitData.vx;
+          fruit.vy = fruitData.vy;
+          fruit.mass = fruitData.mass;
+          fruit.settled = fruitData.settled;
+          fruit.settleTime = fruitData.settleTime;
+          fruits.push(fruit);
+        });
+
+        score = gameState.score;
+        nextLevel = gameState.nextLevel;
+        gameOver = gameState.gameOver;
+
+        scoreEl.textContent = score;
+        nextEmoji.textContent = FRUITS[nextLevel].emoji;
+
+        if (gameOver) {
+          gameOverMsg.style.display = "block";
+        }
+
+        closeLoadMenu();
+      }
+    }
+
+    function deleteSavedGame(index) {
+      let savedGames = JSON.parse(localStorage.getItem('fruitMerge-savedGames') || '[]');
+      savedGames.splice(index, 1);
+      localStorage.setItem('fruitMerge-savedGames', JSON.stringify(savedGames));
+      showLoadMenu();
+    }
+
+    function showLoadMenu() {
+      const savedGames = JSON.parse(localStorage.getItem('fruitMerge-savedGames') || '[]');
+      const menu = document.getElementById('loadMenu');
+      const list = document.getElementById('savedGamesList');
+
+      if (savedGames.length === 0) {
+        list.innerHTML = '<p>No saved games found.</p>';
+      } else {
+        list.innerHTML = '';
+        savedGames.forEach((game, index) => {
+          const gameDiv = document.createElement('div');
+          gameDiv.style.cssText = 'margin: 10px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;';
+          gameDiv.innerHTML = `
+            <div><strong>Score:</strong> ${game.score}</div>
+            <div><strong>Saved:</strong> ${game.created}</div>
+            <button onclick="loadGame(${index})" style="margin: 5px 5px 0 0;">Load</button>
+            <button onclick="deleteSavedGame(${index})" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 3px;">Delete</button>
+          `;
+          list.appendChild(gameDiv);
+        });
+      }
+
+      menu.style.display = 'block';
+    }
+
+    function closeLoadMenu() {
+      document.getElementById('loadMenu').style.display = 'none';
+    }
+
+    function updateStatsDisplay() {
+      // Reload stats from localStorage to ensure we have the latest values
+      stats.cherriesMerged = parseInt(localStorage.getItem('fruitMerge-cherriesMerged') || '0');
+      stats.lemonsMerged = parseInt(localStorage.getItem('fruitMerge-lemonsMerged') || '0');
+      stats.applesMerged = parseInt(localStorage.getItem('fruitMerge-applesMerged') || '0');
+      stats.peachesMerged = parseInt(localStorage.getItem('fruitMerge-peachesMerged') || '0');
+      stats.orangesMerged = parseInt(localStorage.getItem('fruitMerge-orangesMerged') || '0');
+      stats.pineapplesMerged = parseInt(localStorage.getItem('fruitMerge-pineapplesMerged') || '0');
+      stats.kiwisMerged = parseInt(localStorage.getItem('fruitMerge-kiwisMerged') || '0');
+      stats.melonsMerged = parseInt(localStorage.getItem('fruitMerge-melonsMerged') || '0');
+      stats.berriesMerged = parseInt(localStorage.getItem('fruitMerge-berriesMerged') || '0');
+      stats.blueberriesMerged = parseInt(localStorage.getItem('fruitMerge-blueberriesMerged') || '0');
+      stats.mangosMerged = parseInt(localStorage.getItem('fruitMerge-mangosMerged') || '0');
+      stats.totalTimePlayed = parseInt(localStorage.getItem('fruitMerge-totalTimePlayed') || '0');
+      stats.gamesStarted = parseInt(localStorage.getItem('fruitMerge-gamesStarted') || '0');
+      stats.deaths = parseInt(localStorage.getItem('fruitMerge-deaths') || '0');
+      stats.wins = parseInt(localStorage.getItem('fruitMerge-wins') || '0');
+      stats.totalScoreAllFruits = parseInt(localStorage.getItem('fruitMerge-totalScoreAllFruits') || '0');
+
+      document.getElementById('statCherries').textContent = stats.cherriesMerged;
+      document.getElementById('statLemons').textContent = stats.lemonsMerged;
+      document.getElementById('statApples').textContent = stats.applesMerged;
+      document.getElementById('statPeaches').textContent = stats.peachesMerged;
+      document.getElementById('statOranges').textContent = stats.orangesMerged;
+      document.getElementById('statPineapples').textContent = stats.pineapplesMerged;
+      document.getElementById('statKiwis').textContent = stats.kiwisMerged;
+      document.getElementById('statMelons').textContent = stats.melonsMerged;
+      document.getElementById('statBerries').textContent = stats.berriesMerged;
+      document.getElementById('statBlueberries').textContent = stats.blueberriesMerged;
+      document.getElementById('statMangos').textContent = stats.mangosMerged;
+
+      const currentSessionTime = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : 0;
+      const totalTime = stats.totalTimePlayed + currentSessionTime;
+      const totalMinutes = Math.floor(totalTime / 60);
+      const totalSeconds = totalTime % 60;
+      document.getElementById('statTime').textContent = `${totalMinutes}:${totalSeconds.toString().padStart(2, '0')}`;
+
+      document.getElementById('statGames').textContent = stats.gamesStarted;
+      document.getElementById('statDeaths').textContent = stats.deaths;
+      document.getElementById('statWins').textContent = stats.wins;
+      document.getElementById('statTotalScore').textContent = stats.totalScoreAllFruits;
+    }
+
+    spawnDroppingFruit();
+    updateBestTimesList();
+    updateStatsDisplay();
+
+    // Update stats display every second
+    setInterval(updateStatsDisplay, 1000);
+
+    loop();
+  </script>
+</body>
+</html>
