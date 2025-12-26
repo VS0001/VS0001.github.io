@@ -149,19 +149,25 @@
 
     document.addEventListener("keydown", e => {
       keys[e.key] = true;
-      if (e.key === "m" || e.key === "M") {
+      // WASD movement mapping
+      if (e.key === "w") keys["ArrowUp"] = true;
+      if (e.key === "a") keys["ArrowLeft"] = true;
+      if (e.key === "s") keys["ArrowDown"] = true;
+      if (e.key === "d") keys["ArrowRight"] = true;
+      
+      if (e.key === "1") {
         if (minionClones && !minionsSpawned) {
           spawnPlayerMinions();
           minionsSpawned = true;
         }
       }
-      if (e.key === "w" || e.key === "W") {
+      if (e.key === "2") {
         if (smokeBomb && smokeCooldown <= 0) {
           smokeActive = 10000;
           smokeCooldown = 20000;
         }
       }
-      if (e.key === "e" || e.key === "E") {
+      if (e.key === "3") {
         if (timeFreeze && freezeCooldown <= 0) {
           freezeActive = 10000;
           freezeCooldown = 90000;
@@ -170,6 +176,11 @@
     });
     document.addEventListener("keyup", e => {
       keys[e.key] = false;
+      // WASD movement mapping
+      if (e.key === "w") keys["ArrowUp"] = false;
+      if (e.key === "a") keys["ArrowLeft"] = false;
+      if (e.key === "s") keys["ArrowDown"] = false;
+      if (e.key === "d") keys["ArrowRight"] = false;
     });
 
     for (let r = 0; r < 4; r++) {
@@ -616,9 +627,9 @@
       <button id="fireBtn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background: rgba(255,0,0,0.7); border: none; border-radius: 50%; color: white; font-size: 16px; font-weight: bold;">FIRE</button>
       <button id="autoFireBtn" style="position: absolute; top: 50px; right: 20px; padding: 10px; background: rgba(255,255,255,0.2); border: 1px solid white; border-radius: 5px; color: white;">Auto-Fire: OFF</button>
       <div id="abilityButtons" style="position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px;">
-        <button id="minionBtn" style="display: ${localStorage.getItem("minionClones") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (M)</button>
-        <button id="freezeBtn" style="display: ${localStorage.getItem("timeFreeze") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (E)</button>
-        <button id="smokeBtn" style="display: ${localStorage.getItem("smokeBomb") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (W)</button>
+        <button id="minionBtn" style="display: ${localStorage.getItem("minionClones") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (1)</button>
+        <button id="freezeBtn" style="display: ${localStorage.getItem("timeFreeze") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (3)</button>
+        <button id="smokeBtn" style="display: ${localStorage.getItem("smokeBomb") === "true" ? 'block' : 'none'}; padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (2)</button>
       </div>
     `;
     document.body.appendChild(touchControls);
