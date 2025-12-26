@@ -51,9 +51,9 @@
 
     <!-- Ability buttons (shown only if owned) -->
     <div id="abilityButtons" style="position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px;">
-      <button id="minionBtn" style="display: none; padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (M)</button>
-      <button id="freezeBtn" style="display: none; padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (E)</button>
-      <button id="smokeBtn" style="display: none; padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (W)</button>
+      <button id="minionBtn" style="display: none; padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (1)</button>
+      <button id="freezeBtn" style="display: none; padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (3)</button>
+      <button id="smokeBtn" style="display: none; padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (2)</button>
     </div>
   </div>
 
@@ -113,7 +113,7 @@
     const minionHealthLevel = parseInt(localStorage.getItem("minionHealthLevel") || "0");
     const minionFireRateUpgrade = localStorage.getItem("minionFireRateUpgrade") === "true";
     const smokeBomb = localStorage.getItem("smokeBomb") === "true";
-    const gracePeriod = localStorage.getItem("gracePeriod") === "true";
+    const gracePeriod = true; // Always active
     const timeFreeze = localStorage.getItem("timeFreeze") === "true";
     const rewardScaleUp = localStorage.getItem("rewardScaleUp") === "true"; // Added for Reward Scale-Up
     const x2Damage = localStorage.getItem("x2Damage") === "true"; // Added for x2 Damage
@@ -672,10 +672,10 @@
           document.getElementById('toLevel6Btn').onclick = () => {
             localStorage.setItem("playerScore", score);
             const gameMode = localStorage.getItem("gameMode") || "normal";
-            const startingLives = gameMode === "easy" ? 5 : gameMode === "hard" ? 1 : 3;
             const maxLives = gameMode === "easy" ? 6 : gameMode === "hard" ? 2 : 4;
             let finalLives = player.lives;
-            if (regeneration && finalLives < startingLives + (extraLifeBonus ? 1 : 0)) {
+            // Only add 1 life with regeneration if player is below max lives
+            if (regeneration && finalLives < maxLives) {
               finalLives = Math.min(finalLives + 1, maxLives);
             }
             localStorage.setItem("playerLives", finalLives);
@@ -702,11 +702,16 @@
     loop();
     document.addEventListener("keydown", e => {
       // Prevent default for game keys to avoid browser shortcuts
-      if ([" ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "q", "Q", "m", "M", "w", "W", "e", "E"].includes(e.key)) {
+      if ([" ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "q", "Q", "w", "a", "s", "d", "1", "2", "3"].includes(e.key)) {
         e.preventDefault();
       }
 
       keys[e.key] = true;
+      // WASD movement mapping
+      if (e.key === "w") keys["ArrowUp"] = true;
+      if (e.key === "a") keys["ArrowLeft"] = true;
+      if (e.key === "s") keys["ArrowDown"] = true;
+      if (e.key === "d") keys["ArrowRight"] = true;
 
       if (e.key === "q" || e.key === "Q") {
         if (homingEnabled && homingCooldown <= 0) {
@@ -714,19 +719,19 @@
           homingCooldown = HOMING_COOLDOWN_TIME;
         }
       }
-      if (e.key === "m" || e.key === "M") {
+      if (e.key === "1") {
         if (minionClones && !minionsSpawned) {
           spawnPlayerMinions();
           minionsSpawned = true;
         }
       }
-      if (e.key === "w" || e.key === "W") {
+      if (e.key === "2") {
         if (smokeBomb && smokeCooldown <= 0) {
           smokeActive = 10000;
           smokeCooldown = 20000;
         }
       }
-      if (e.key === "e" || e.key === "E") {
+      if (e.key === "3") {
         if (timeFreeze && freezeCooldown <= 0) {
           freezeActive = 10000;
           freezeCooldown = 90000;
@@ -734,10 +739,15 @@
       }
     });
     document.addEventListener("keyup", e => {
-      if ([" ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "q", "Q", "m", "M", "w", "W", "e", "E"].includes(e.key)) {
+      if ([" ", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "q", "Q", "w", "a", "s", "d", "1", "2", "3"].includes(e.key)) {
         e.preventDefault();
       }
       keys[e.key] = false;
+      // WASD movement mapping
+      if (e.key === "w") keys["ArrowUp"] = false;
+      if (e.key === "a") keys["ArrowLeft"] = false;
+      if (e.key === "s") keys["ArrowDown"] = false;
+      if (e.key === "d") keys["ArrowRight"] = false;
     });
 
     // Touchscreen support - show controls and setup events
