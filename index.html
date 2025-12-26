@@ -13,6 +13,12 @@
   <meta name="language" content="English">
   <meta name="theme-color" content="#4ecdc4">
 
+  <!-- Performance Meta Tags -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://github.com">
+  <link rel="dns-prefetch" href="https://youtube.com">
+
   <!-- Open Graph Meta Tags for Social Media -->
   <meta property="og:title" content="Viraaj Sharma's Portfolio - Interactive Web Games & Development Projects">
   <meta property="og:description" content="Explore a collection of browser-based games and tools including Snake, Space Invaders, 2048, AI Chatbot, and more. Built by passionate hobby developer Viraaj Sharma.">
@@ -21,14 +27,14 @@
   <meta property="og:site_name" content="Viraaj Sharma's Portfolio">
   <meta property="og:locale" content="en_US">
 
- 
-  
+
+
 
   <!-- Additional SEO -->
   <link rel="canonical" href="https://vportfolio.replit.app">
   <meta name="rating" content="General">
   <meta name="distribution" content="Global">
-  
+
   <!-- JSON-LD Structured Data -->
   <script type="application/ld+json">
   {
@@ -53,7 +59,7 @@
         "operatingSystem": "Web Browser"
       },
       {
-        "@type": "SoftwareApplication", 
+        "@type": "SoftwareApplication",
         "name": "Sammy the Snake",
         "applicationCategory": "Game",
         "operatingSystem": "Web Browser"
@@ -61,7 +67,7 @@
       {
         "@type": "SoftwareApplication",
         "name": "Block Drop",
-        "applicationCategory": "Game", 
+        "applicationCategory": "Game",
         "operatingSystem": "Web Browser"
       }
     ]
@@ -84,6 +90,33 @@
       align-items: center;
       justify-content: center;
       animation: fadeIn 0.8s ease-out;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+
+    body.light-theme {
+      background: linear-gradient(135deg, #f0f0f0, #e0e0e0, #d0d0d0);
+      color: #1a1a2e;
+    }
+
+    body.light-theme .game-card,
+    body.light-theme .bio-card,
+    body.light-theme .organization-controls {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.15);
+      color: #1a1a2e;
+    }
+
+    body.light-theme h1,
+    body.light-theme .bio-header h2 {
+      background: linear-gradient(45deg, #e74c3c, #3498db);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    body.light-theme .social-links a,
+    body.light-theme .game-card button {
+      color: white;
     }
 
     @keyframes fadeIn {
@@ -152,6 +185,30 @@
       -webkit-text-fill-color: transparent;
       background-clip: text;
       animation: slideInUp 1s ease-out 0.2s both;
+    }
+
+    /* Banner styles */
+    .banner {
+      width: 100%;
+      padding: 15px 0;
+      background-color: #ff6b6b; /* Reddish color for attention */
+      color: white;
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: bold;
+      position: fixed; /* Fixed at the top */
+      top: 0;
+      left: 0;
+      z-index: 1000; /* Ensure it's above other content */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      animation: slideInDown 0.5s ease-out forwards;
+      transform: translateY(-100%); /* Initially hidden */
+    }
+
+    @keyframes slideInDown {
+      to {
+        transform: translateY(0);
+      }
     }
 
     .bio-section {
@@ -356,6 +413,13 @@
     .game-card:nth-child(14) { animation-delay: 2.3s; }
     .game-card:nth-child(15) { animation-delay: 2.4s; }
     .game-card:nth-child(16) { animation-delay: 2.5s; }
+    .game-card:nth-child(17) { animation-delay: 2.6s; } /* For new cards */
+    .game-card:nth-child(18) { animation-delay: 2.7s; }
+    .game-card:nth-child(19) { animation-delay: 2.8s; }
+    .game-card:nth-child(20) { animation-delay: 2.9s; }
+    .game-card:nth-child(21) { animation-delay: 3.0s; }
+    .game-card:nth-child(22) { animation-delay: 3.1s; }
+
 
     .game-card:hover {
       transform: translateY(-10px) scale(1.02);
@@ -384,6 +448,29 @@
 
     .game-card:hover p {
       opacity: 1;
+    }
+
+    /* Snake Battle loading animation */
+    .game-card.loading::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5); /* Overlay */
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2em;
+      z-index: 1;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .game-card button {
@@ -523,14 +610,17 @@
       }
     }
 
-    
+
   </style>
 </head>
 <body>
 
+  <!-- Banner -->
+  <div class="banner">MOVING TO VS0001.GITHUB.IO SOON</div>
+
   <h1>Viraaj's Portfolio</h1>
 
-  
+
 
   <div class="bio-section">
     <div class="bio-card">
@@ -565,13 +655,19 @@
     <div class="social-links">
       <a href="https://github.com/VS0001" target="_blank">🔗 GitHub: VS0001</a>
       <a href="https://youtube.com/@V.dev500" target="_blank">📺 YouTube: V.dev500</a>
-      
+
+      <button id="themeToggle" style="background: rgba(255, 255, 255, 0.1); border: 2px solid #4ecdc4; padding: 12px 24px; border-radius: 25px; color: white; cursor: pointer; transition: all 0.3s ease;">
+        🌙 Toggle Theme
+      </button>
     </div>
   </div>
 
   <!-- Game Organization Controls -->
   <div class="organization-section">
     <h2>🎮 Browse My Games</h2>
+    <div style="margin-bottom: 20px;">
+      <input type="text" id="gameSearch" placeholder="🔍 Search games..." style="padding: 12px 20px; width: 100%; max-width: 500px; background: rgba(255, 255, 255, 0.1); border: 2px solid #4ecdc4; border-radius: 25px; color: white; font-size: 16px; transition: all 0.3s ease;">
+    </div>
     <div class="organization-controls">
       <label for="organizationMode">Categorize by:</label>
       <select id="organizationMode">
@@ -598,7 +694,7 @@
       <button onclick="window.location.href='sammysnake.html'">Play Game</button>
     </div>
 
-    
+
 
     <div class="game-card">
       <h3>🔳 Brick Breaker</h3>
@@ -607,66 +703,87 @@
     </div>
 
     <div class="game-card">
-      <h3>☁️ Fluffy  McFluffin Fluff Fluff Fluffiest Fluffing Fluffer Fluffed Fluffball</h3>
-      <p>Navigate a very fluffy cloud through spiky obstacles</p>
+      <h3>☁️ Fluffy Fluff Fluff Fluffer</h3>
+      <p>Navigate a fluffy cloud through spiky obstacles</p>
       <button onclick="window.location.href='flappybird.html'">Play Game</button>
     </div>
 
-    
+
+    <!-- Tiny World Card -->
+    <div class="game-card">
+      <h3>
+        <a href="https://tinyworld.replit.app" target="_blank" style="color: inherit; text-decoration: none;">
+          <span style="font-size: 1.5em;">🌍</span> TINY WORLD
+        </a>
+      </h3>
+      <p>A small, interactive world waiting to be explored.</p>
+      <button onclick="window.location.href='https://tinyworld.replit.app'">Visit Tiny World</button>
+    </div>
 
     <div class="game-card">
-          <h3>🌀 Maze Runner</h3>
-          <p>Navigate through challenging mazes from 5x5 to 100x100 grids. Find your way from start to finish!</p>
-          <button onclick="window.location.href='maze.html'">Play Maze Runner</button>
-        </div>
+      <h3>🌀 Maze Runner</h3>
+      <p>Navigate through challenging mazes from 5x5 to 100x100 grids. Find your way from start to finish!</p>
+      <button onclick="window.location.href='maze.html'">Play Maze Runner</button>
+    </div>
 
-        <div class="game-card">
-          <h3>🎯 Hangman</h3>
-          <p>Guess the hidden word letter by letter before running out of chances!</p>
-          <button onclick="window.location.href='hangman.html'">Play Game</button>
-        </div>
+    <div class="game-card">
+      <h3>🎯 Hangman</h3>
+      <p>Guess the hidden word letter by letter before running out of chances!</p>
+      <button onclick="window.location.href='hangman.html'">Play Game</button>
+    </div>
 
-        <div class="game-card">
-          <h3>🔍 Word Search</h3>
-          <p>Find hidden words in letter grids. Words can be horizontal, vertical, diagonal, based on chosen difficulty!</p>
-          <button onclick="window.location.href='wordsearch.html'">Play Game</button>
-        </div>
+    <div class="game-card">
+      <h3>🔍 Word Search</h3>
+      <p>Find hidden words in letter grids. Words can be horizontal, vertical, diagonal!</p>
+      <button onclick="window.location.href='wordsearch.html'">Play Game</button>
+    </div>
 
-        <div class="game-card">
-          <h3>📝 Word Guesser</h3>
-          <p>Guess the secret word with colored clues! Choose difficulty and word length.</p>
-          <button onclick="window.location.href='wordguesser.html'">Play Game</button>
-        </div>
+    <div class="game-card">
+      <h3>📝 Word Guesser</h3>
+      <p>Guess the secret word with colored clues! Choose difficulty and word length.</p>
+      <button onclick="window.location.href='wordguesser.html'">Play Game</button>
+    </div>
 
-        <div class="game-card">
-          <h3>🔢 2048</h3>
-          <p>Combine tiles with the same number to reach the elusive 2048 tile! Cool merging effects and rewarding gradient tiles.</p>
-          <button onclick="window.location.href='game2048.html'">Play 2048</button>
-        </div>
+    <div class="game-card">
+      <h3>🔢 2048</h3>
+      <p>Combine tiles with the same number to reach the elusive 2048 tile!</p>
+      <button onclick="window.location.href='game2048.html'">Play 2048</button>
+    </div>
 
-        <div class="game-card">
-          <h3>🧩 Slider Puzzle</h3>
-          <p>Arrange numbered tiles in order by sliding them into the empty space -- extremely challenging!</p>
-          <button onclick="window.location.href='sliderpuzzle.html'">Play Slider Puzzle</button>
-        </div>
+    <div class="game-card">
+      <h3>🧩 Slider Puzzle</h3>
+      <p>Arrange numbered tiles in order by sliding them into the empty space!</p>
+      <button onclick="window.location.href='sliderpuzzle.html'">Play Slider Puzzle</button>
+    </div>
 
+    <div class="game-card">
+      <h3>🔧 Pipe Puzzle</h3>
+      <p>Rotate pipes to create a connection from start to end! Test the flow to win!</p>
+      <button onclick="window.location.href='pipepuzzle.html'">Play Pipe Puzzle</button>
+    </div>
+
+    <div class="game-card">
+      <h3>🎯 Path Finder</h3>
+      <p>Visit every square exactly once! Navigate around obstacles in challenging grids up to 30x30!</p>
+      <button onclick="window.location.href='pathfinder.html'">Play Path Finder</button>
+    </div>
 
 
     <div class="game-card">
       <h3>🍉 Fruit Merge</h3>
-      <p>Merge fruits to create bigger ones and reach the watermelon in this addicting physics-based gameplay!</p>
+      <p>Merge fruits to create bigger ones and reach the watermelon!</p>
       <button onclick="window.location.href='fruitmerge.html'">Play Game</button>
     </div>
 
     <div class="game-card">
       <h3>🤖 Chatbot 2.6</h3>
-      <p>Interactive keyword-detection chatbot with games, jokes, and conversation! Not a real AI, just a simple bot.</p>
+      <p>Interactive keyword-detection chatbot with games, jokes, and conversation!</p>
       <button onclick="window.location.href='chatbot.html'">Chat Now</button>
     </div>
 
     <div class="game-card">
       <h3>⛏️ Gold Miner</h3>
-      <p>Collect gold nuggets within limited moves! -- Minesweeper reversed!</p>
+      <p>Collect gold nuggets within limited moves!</p>
       <button onclick="window.location.href='minesweeper.html'">Play Game</button>
     </div>
 
@@ -678,139 +795,194 @@
 
     <div class="game-card">
       <h3>🎤 Voice Notes</h3>
-      <p>Record and manage voice notes with speech recognition and export functionality -- great for on the go!</p>
+      <p>Record and manage voice notes with speech recognition and export functionality.</p>
       <button onclick="window.location.href='voicenotes.html'">Try Voice Notes</button>
     </div>
 
     <div class="game-card">
       <h3>🏓 Pong</h3>
-      <p>Classic Pong game with AI opponents and local multiplayer modes, with difficulty selection!</p>
+      <p>Classic Pong game with AI opponents and local multiplayer modes!</p>
       <button onclick="window.location.href='pong.html'">Play Pong</button>
     </div>
 
-    <div class="game-card">
+    <div class="game-card snake-battle-card">
       <h3>🐍 Snake Battle</h3>
       <p>Multiplayer snake game! Battle against AI or friends in intense snake combat!</p>
       <button onclick="window.location.href='snakebattle.html'">Play Snake Battle</button>
     </div>
 
+    <div class="game-card">
+      <h3>🧟 Zombie Defense</h3>
+      <p>Survive waves of zombies! Shoot, collect powerups, and face epic boss battles!</p>
+      <button onclick="window.location.href='zombiedefense.html'">Play Zombie Defense</button>
+    </div>
+
+    <!-- Today's Gita Card -->
+    <div class="game-card">
+      <h3>📖 Today's Gita</h3>
+      <p>Daily dose of wisdom from the Bhagavad Gita.</p>
+      <button onclick="window.location.href='https://todays-gita.replit.app'">Visit Today's Gita</button>
+    </div>
+
+    <!-- Zombie Survivor Card -->
+    <div class="game-card">
+      <h3>🧟 Zombie Survivors</h3>
+      <p>Survive endless waves with 30+ unique powers! Reach Level 60 to win!</p>
+      <button onclick="window.location.href='zombiesurvivor.html'">Play Zombie Survivors</button>
+    </div>
 
   </div>
 
-  
+
 
 <script>
   // Game categorization data
   const gameCategories = {
-    "dashboard.html": { 
-      type: "Game", 
+    "dashboard.html": {
+      type: "Game",
       title: "🚀 Emoji Space Invaders",
       orderCreated: 1,
       recommendation: 1
     },
-    
-    "flappybird.html": { 
-      type: "Game", 
+
+    "flappybird.html": {
+      type: "Game",
       title: "☁️ Fluffy Fluff Fluff Fluffer",
       orderCreated: 3,
       recommendation: 11
     },
-    "brickbreaker.html": { 
-      type: "Game", 
+    "brickbreaker.html": {
+      type: "Game",
       title: "🔳 Brick Breaker",
       orderCreated: 4,
       recommendation: 6
     },
-    
-    "sammysnake.html": { 
-      type: "Game", 
+
+    "sammysnake.html": {
+      type: "Game",
       title: "🐍 Sammy the Snake",
       orderCreated: 6,
       recommendation: 3
     },
-    "fruitmerge.html": { 
-      type: "Game", 
+    "fruitmerge.html": {
+      type: "Game",
       title: "🍉 Fruit Merge",
       orderCreated: 7,
       recommendation: 2
     },
-    "maze.html": { 
-      type: "Puzzle Game", 
+    "maze.html": {
+      type: "Puzzle Game",
       title: "🌀 Maze Runner",
       orderCreated: 8,
       recommendation: 8
     },
-    "wordgames.html": { 
-      type: "Puzzle Game", 
+    "wordgames.html": { // Assuming this was a placeholder for word-related games
+      type: "Puzzle Game",
       title: "📝 Word Games",
       orderCreated: 9,
       recommendation: 9
     },
-    "game2048.html": { 
-      type: "Puzzle Game", 
+    "game2048.html": {
+      type: "Puzzle Game",
       title: "🔢 2048",
       orderCreated: 10,
       recommendation: 0
     },
-    "sliderpuzzle.html": { 
-      type: "Puzzle Game", 
+    "sliderpuzzle.html": {
+      type: "Puzzle Game",
       title: "🧩 Slider Puzzle",
       orderCreated: 11,
       recommendation: 0
     },
-    "minesweeper.html": { 
-      type: "Puzzle Game", 
+    "pipepuzzle.html": { // Added for Pipe Puzzle
+      type: "Puzzle Game",
+      title: "🔧 Pipe Puzzle",
+      orderCreated: 12, // Assigning a new order
+      recommendation: 7
+    },
+    "pathfinder.html": { // Added for Path Finder
+      type: "Puzzle Game",
+      title: "🎯 Path Finder",
+      orderCreated: 13, // Assigning a new order
+      recommendation: 5
+    },
+    "minesweeper.html": {
+      type: "Puzzle Game",
       title: "⛏️ Gold Miner",
-      orderCreated: 13,
+      orderCreated: 13, // This might need adjustment if Gold Miner is different from Minesweeper
       recommendation: 10
     },
-    "hangman.html": { 
-      type: "Puzzle Game", 
+    "hangman.html": {
+      type: "Puzzle Game",
       title: "🎯 Hangman",
       orderCreated: 15,
       recommendation: 7
     },
-    "wordsearch.html": { 
-      type: "Puzzle Game", 
+    "wordsearch.html": {
+      type: "Puzzle Game",
       title: "🔍 Word Search",
       orderCreated: 16,
       recommendation: 6
     },
-    "wordguesser.html": { 
-      type: "Puzzle Game", 
+    "wordguesser.html": {
+      type: "Puzzle Game",
       title: "📝 Word Guesser",
       orderCreated: 17,
       recommendation: 8
     },
-    "pixelartist.html": { 
-      type: "Tool", 
+    "pixelartist.html": {
+      type: "Tool",
       title: "🎨 Pixel Artist",
       orderCreated: 14,
       recommendation: 4
     },
-    "chatbot.html": { 
-      type: "AI", 
+    "chatbot.html": {
+      type: "AI",
       title: "🤖 Chatbot 2.6",
-      orderCreated: 0,
+      orderCreated: 0, // Assuming this was an earlier project
       recommendation: 0
     },
-    "voicenotes.html": { 
-      type: "Tool", 
+    "voicenotes.html": {
+      type: "Tool",
       title: "🎤 Voice Notes",
-      orderCreated: 0,
+      orderCreated: 0, // Assuming this was an earlier project
       recommendation: 0
     },
-    "pong.html": { 
-      type: "Game", 
+    "pong.html": {
+      type: "Game",
       title: "🏓 Pong",
       orderCreated: 18,
       recommendation: 5
     },
-    "snakebattle.html": { 
-      type: "Game", 
+    "snakebattle.html": {
+      type: "Game",
       title: "🐍 Snake Battle",
       orderCreated: 19,
       recommendation: 4
+    },
+    "tinyworld.replit.app": { // Added for Tiny World
+      type: "Game", // Or "Experience" or "Tool" depending on its nature
+      title: "🌍 Tiny World",
+      orderCreated: 20, // Assigning a new order
+      recommendation: 3
+    },
+    "zombiedefense.html": {
+      type: "Game",
+      title: "🧟 Zombie Defense",
+      orderCreated: 21,
+      recommendation: 2
+    },
+    "todays-gita.replit.app": { // Added for Today's Gita
+      type: "Tool", // Categorized as a tool for daily wisdom
+      title: "📖 Today's Gita",
+      orderCreated: 22, // Assigning a new order
+      recommendation: 0 // No specific recommendation score for now
+    },
+    "zombiesurvivor.html": {
+      type: "Game",
+      title: "🧟 Zombie Survivors",
+      orderCreated: 23,
+      recommendation: 1
     }
   };
 
@@ -818,121 +990,220 @@
   document.addEventListener('DOMContentLoaded', function() {
     const organizationMode = document.getElementById('organizationMode');
     const gamesGrid = document.querySelector('.games-grid');
-    
+
     if (organizationMode) {
       organizationMode.addEventListener('change', function() {
         organizeGames(this.value);
       });
     }
+
+    // Apply loading animation to Snake Battle card on load (or simulate it)
+    const snakeBattleCard = document.querySelector('.snake-battle-card');
+    if (snakeBattleCard) {
+      // Simulate a short loading delay before removing the class
+      snakeBattleCard.classList.add('loading');
+      setTimeout(() => {
+        snakeBattleCard.classList.remove('loading');
+      }, 1500); // 1.5 second loading animation
+    }
+
+    // Initialize search and theme
+    searchGames();
+    toggleThemeOnLoad();
   });
 
   function organizeGames(mode) {
     const gamesGrid = document.querySelector('.games-grid');
-    const gameCards = Array.from(gamesGrid.children);
-    
+    let gameCards = Array.from(gamesGrid.children).filter(child => child.classList.contains('game-card')); // Filter out dividers
+
+    // Clear existing dividers if any
+    gamesGrid.querySelectorAll('.category-divider').forEach(divider => divider.remove());
+
     // Add organizing class for smooth transition
     gamesGrid.classList.add('organizing');
-    
+
     setTimeout(() => {
       let sortedCards = [...gameCards];
-      
+
       switch(mode) {
         case 'orderCreated':
           sortedCards.sort((a, b) => {
             const aHref = a.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
             const bHref = b.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
-            const aOrder = gameCategories[aHref]?.orderCreated || 999;
-            const bOrder = gameCategories[bHref]?.orderCreated || 999;
+            // Handle cases where href might not match gameCategories keys directly (e.g., external links)
+            let aOrder = Infinity;
+            let bOrder = Infinity;
+
+            if (gameCategories[aHref]) aOrder = gameCategories[aHref].orderCreated || Infinity;
+            else if (aHref && aHref.includes('tinyworld.replit.app')) aOrder = gameCategories['tinyworld.replit.app'].orderCreated || Infinity; // Specific handling for external links
+            else if (aHref && aHref.includes('todays-gita.replit.app')) aOrder = gameCategories['todays-gita.replit.app'].orderCreated || Infinity;
+
+
+            if (gameCategories[bHref]) bOrder = gameCategories[bHref].orderCreated || Infinity;
+            else if (bHref && bHref.includes('tinyworld.replit.app')) bOrder = gameCategories['tinyworld.replit.app'].orderCreated || Infinity;
+            else if (bHref && bHref.includes('todays-gita.replit.app')) bOrder = gameCategories['todays-gita.replit.app'].orderCreated || Infinity;
+
+
             return aOrder - bOrder;
           });
           break;
-          
+
         case 'type':
-          // Group by type and add dividers
-          const typeOrder = ['Game', 'AI', 'Puzzle Game', 'Tool'];
+          const typeOrder = ['Game', 'AI', 'Puzzle Game', 'Tool', 'Other'];
           const groupedCards = {};
-          
-          // Group cards by type
+
           gameCards.forEach(card => {
-            const href = card.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
-            const type = gameCategories[href]?.type || 'Other';
+            const button = card.querySelector('button');
+            const onclickAttr = button ? button.getAttribute('onclick') : '';
+            const hrefMatch = onclickAttr ? onclickAttr.match(/'([^']+)'/) : null;
+            const href = hrefMatch ? hrefMatch[1] : null;
+
+            let type = 'Other';
+            if (href) {
+              if (gameCategories[href]) {
+                type = gameCategories[href].type;
+              } else if (href.includes('tinyworld.replit.app')) {
+                type = gameCategories['tinyworld.replit.app'].type;
+              } else if (href.includes('todays-gita.replit.app')) {
+                type = gameCategories['todays-gita.replit.app'].type;
+              }
+            }
+
             if (!groupedCards[type]) groupedCards[type] = [];
             groupedCards[type].push(card);
           });
-          
-          // Create sorted array with dividers
+
           sortedCards = [];
           typeOrder.forEach(type => {
             if (groupedCards[type] && groupedCards[type].length > 0) {
-              // Add divider
               const divider = document.createElement('div');
               divider.className = 'category-divider';
               divider.textContent = type;
               sortedCards.push(divider);
-              
-              // Add cards in this category
               sortedCards.push(...groupedCards[type]);
             }
           });
           break;
-          
+
         case 'az':
           sortedCards.sort((a, b) => {
-            const aTitle = a.querySelector('h3').textContent.trim();
-            const bTitle = b.querySelector('h3').textContent.trim();
+            const aTitle = a.querySelector('h3 a') ? a.querySelector('h3 a').textContent.trim() : a.querySelector('h3').textContent.trim();
+            const bTitle = b.querySelector('h3 a') ? b.querySelector('h3 a').textContent.trim() : b.querySelector('h3').textContent.trim();
             return aTitle.localeCompare(bTitle);
           });
           break;
-          
+
         case 'za':
           sortedCards.sort((a, b) => {
-            const aTitle = a.querySelector('h3').textContent.trim();
-            const bTitle = b.querySelector('h3').textContent.trim();
+            const aTitle = a.querySelector('h3 a') ? a.querySelector('h3 a').textContent.trim() : a.querySelector('h3').textContent.trim();
+            const bTitle = b.querySelector('h3 a') ? b.querySelector('h3 a').textContent.trim() : b.querySelector('h3').textContent.trim();
             return bTitle.localeCompare(aTitle);
           });
           break;
-          
+
         case 'recommendation':
-          // Filter and sort by recommendation order
           const recommendedCards = sortedCards.filter(card => {
             const href = card.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
-            const rec = gameCategories[href]?.recommendation;
+            let rec = 0;
+            if (gameCategories[href]) rec = gameCategories[href].recommendation;
+            else if (href && href.includes('tinyworld.replit.app')) rec = gameCategories['tinyworld.replit.app'].recommendation;
+            else if (href && href.includes('todays-gita.replit.app')) rec = gameCategories['todays-gita.replit.app'].recommendation;
             return rec && rec > 0;
           }).sort((a, b) => {
             const aHref = a.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
             const bHref = b.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
-            const aRec = gameCategories[aHref]?.recommendation || 999;
-            const bRec = gameCategories[bHref]?.recommendation || 999;
+            let aRec = 999;
+            let bRec = 999;
+
+            if (gameCategories[aHref]) aRec = gameCategories[aHref].recommendation || 999;
+            else if (aHref && aHref.includes('tinyworld.replit.app')) aRec = gameCategories['tinyworld.replit.app'].recommendation || 999;
+            else if (aHref && aHref.includes('todays-gita.replit.app')) aRec = gameCategories['todays-gita.replit.app'].recommendation || 999;
+
+
+            if (gameCategories[bHref]) bRec = gameCategories[bHref].recommendation || 999;
+            else if (bHref && bHref.includes('tinyworld.replit.app')) bRec = gameCategories['tinyworld.replit.app'].recommendation || 999;
+            else if (bHref && bHref.includes('todays-gita.replit.app')) bRec = gameCategories['todays-gita.replit.app'].recommendation || 999;
+
+
             return aRec - bRec;
           });
-          
+
           const otherCards = sortedCards.filter(card => {
             const href = card.querySelector('button').getAttribute('onclick').match(/'([^']+)'/)?.[1];
-            const rec = gameCategories[href]?.recommendation;
+            let rec = 0;
+             if (gameCategories[href]) rec = gameCategories[href].recommendation;
+            else if (href && href.includes('tinyworld.replit.app')) rec = gameCategories['tinyworld.replit.app'].recommendation;
+            else if (href && href.includes('todays-gita.replit.app')) rec = gameCategories['todays-gita.replit.app'].recommendation;
             return !rec || rec === 0;
           });
-          
+
           sortedCards = [...recommendedCards, ...otherCards];
           break;
-          
+
         default: // 'default' - restore original order
-          // No sorting needed for default
+          // Re-fetch original order to ensure consistency
+          const originalOrder = Array.from(gamesGrid.children).filter(child => child.classList.contains('game-card'));
+          sortedCards = originalOrder;
           break;
       }
-      
+
       // Clear and re-append sorted cards
       gamesGrid.innerHTML = '';
       sortedCards.forEach((card, index) => {
+        // Ensure animation delay is applied correctly, especially after filtering/grouping
         card.style.animationDelay = `${1 + index * 0.1}s`;
         gamesGrid.appendChild(card);
       });
-      
+
       // Remove organizing class
       gamesGrid.classList.remove('organizing');
-    }, 300);
+    }, 300); // Match the transition duration
   }
 
-  // Email subscription functionality
+  // Theme toggle functionality
+  const themeToggle = document.getElementById('themeToggle');
+  const savedTheme = localStorage.getItem('portfolioTheme');
+
+  function toggleThemeOnLoad() {
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-theme');
+      themeToggle.textContent = '🌞 Toggle Theme';
+    } else {
+      document.body.classList.remove('light-theme');
+      themeToggle.textContent = '🌙 Toggle Theme';
+    }
+  }
+
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    localStorage.setItem('portfolioTheme', isLight ? 'light' : 'dark');
+    themeToggle.textContent = isLight ? '🌞 Toggle Theme' : '🌙 Toggle Theme';
+  });
+
+  // Game search functionality
+  const gameSearch = document.getElementById('gameSearch');
+  gameSearch.addEventListener('input', searchGames);
+
+  function searchGames() {
+    const searchTerm = gameSearch.value.toLowerCase();
+    const gameCards = document.querySelectorAll('.game-card');
+
+    gameCards.forEach(card => {
+      const titleElement = card.querySelector('h3 a') || card.querySelector('h3');
+      const title = titleElement ? titleElement.textContent.toLowerCase() : '';
+      const description = card.querySelector('p') ? card.querySelector('p').textContent.toLowerCase() : '';
+
+      if (title.includes(searchTerm) || description.includes(searchTerm)) {
+        card.style.display = 'block';
+        card.style.animation = 'fadeIn 0.3s ease-out';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+
+  // Email subscription functionality (assuming it exists elsewhere or is not part of this edit)
   const subscriptionForm = document.getElementById('subscriptionForm');
   if (subscriptionForm) {
     subscriptionForm.addEventListener('submit', function(e) {
@@ -941,10 +1212,8 @@
       const email = document.getElementById('subscriberEmail').value.trim();
       const messageDiv = document.getElementById('subscriptionMessage');
 
-      // Get existing subscriber list from localStorage
       let subscriberEmails = JSON.parse(localStorage.getItem('allSubscribers') || '[]');
 
-      // Check if email already exists
       if (subscriberEmails.includes(email)) {
         messageDiv.style.display = 'block';
         messageDiv.style.background = 'rgba(255, 255, 0, 0.2)';
@@ -953,7 +1222,6 @@
         return;
       }
 
-      // Add email to list with timestamp
       const newSubscription = {
         email: email,
         timestamp: new Date().toISOString(),
@@ -967,16 +1235,13 @@
       localStorage.setItem('allSubscribers', JSON.stringify(subscriberEmails));
       localStorage.setItem('detailedSubscribers', JSON.stringify(detailedSubscribers));
 
-      // Show success message
       messageDiv.style.display = 'block';
       messageDiv.style.background = 'rgba(0, 255, 0, 0.2)';
       messageDiv.style.color = '#00ff00';
-      messageDiv.textContent = '✅ Successfully subscribed! You will recieve regular updates about new content now. Stay tuned!';
+      messageDiv.textContent = '✅ Successfully subscribed! You will receive regular updates about new content now. Stay tuned!';
 
-      // Clear form
       document.getElementById('subscriberEmail').value = '';
 
-      // Hide message after 3 seconds
       setTimeout(() => {
         messageDiv.style.display = 'none';
       }, 3000);
