@@ -1,0 +1,703 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔧 Pipe Puzzle</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    .controls {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .difficulty-control {
+      margin-bottom: 15px;
+    }
+    .difficulty-control label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .difficulty-control input {
+      width: 200px;
+      margin-right: 10px;
+    }
+    .btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 5px;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    .btn:hover {
+      background: #2980b9;
+    }
+    .btn.save {
+      background: #27ae60;
+    }
+    .btn.save:hover {
+      background: #229954;
+    }
+    .game-area {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .game-container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .pipe-grid {
+      display: grid;
+      gap: 2px;
+      background: #2c3e50;
+      border-radius: 10px;
+      padding: 10px;
+      margin: 0 auto;
+    }
+    .pipe-cell {
+      background: #34495e;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .pipe-cell:hover {
+      background: #4a6741;
+    }
+    .pipe-cell.start {
+      background: #27ae60;
+    }
+    .pipe-cell.end {
+      background: #e74c3c;
+    }
+    .pipe-cell.connected {
+      background: #3498db;
+    }
+    .pipe {
+      width: 80%;
+      height: 80%;
+      position: relative;
+    }
+    .pipe-straight-h {
+      border-top: 4px solid #fff;
+      border-bottom: 4px solid #fff;
+      height: 50%;
+      margin-top: 25%;
+    }
+    .pipe-straight-v {
+      border-left: 4px solid #fff;
+      border-right: 4px solid #fff;
+      width: 50%;
+      margin-left: 25%;
+      height: 100%;
+    }
+    .pipe-corner-tl {
+      border-top: 4px solid #fff;
+      border-left: 4px solid #fff;
+      border-top-left-radius: 50%;
+      width: 50%;
+      height: 50%;
+      margin-left: 25%;
+      margin-top: 25%;
+    }
+    .pipe-corner-tr {
+      border-top: 4px solid #fff;
+      border-right: 4px solid #fff;
+      border-top-right-radius: 50%;
+      width: 50%;
+      height: 50%;
+      margin-top: 25%;
+    }
+    .pipe-corner-bl {
+      border-bottom: 4px solid #fff;
+      border-left: 4px solid #fff;
+      border-bottom-left-radius: 50%;
+      width: 50%;
+      height: 50%;
+      margin-left: 25%;
+    }
+    .pipe-corner-br {
+      border-bottom: 4px solid #fff;
+      border-right: 4px solid #fff;
+      border-bottom-right-radius: 50%;
+      width: 50%;
+      height: 50%;
+    }
+    .info-panel {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      min-width: 200px;
+    }
+    .timer {
+      font-size: 1.5em;
+      margin: 10px 0;
+      color: #f39c12;
+    }
+    .moves {
+      font-size: 1.2em;
+      margin: 10px 0;
+    }
+    .flow-btn {
+      background: #f39c12;
+      color: white;
+      border: none;
+      padding: 15px 25px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      margin: 10px 0;
+      transition: all 0.3s ease;
+    }
+    .flow-btn:hover {
+      background: #e67e22;
+    }
+    .win-message {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .win-content {
+      background: #27ae60;
+      padding: 40px;
+      border-radius: 15px;
+      text-align: center;
+      animation: bounce 0.5s ease-out;
+    }
+    @keyframes bounce {
+      0% { transform: scale(0.5); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    @media (max-width: 768px) {
+      .game-area {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Pipe Puzzle</h1>
+    
+    <div class="controls">
+      <div class="difficulty-control">
+        <label>Difficulty Level:</label>
+        <input type="range" id="difficultySlider" min="1" max="5" value="2">
+        <span id="difficultyDisplay">Easy (6x6)</span>
+      </div>
+      <button class="btn" onclick="generatePuzzle()">New Puzzle</button>
+      <button class="btn" onclick="shufflePipes()">Shuffle</button>
+      <button class="btn save" onclick="savePuzzle()">Save to Library</button>
+    </div>
+    
+    <div class="game-area">
+      <div class="game-container">
+        <div id="pipeGrid" class="pipe-grid"></div>
+        <button class="flow-btn" onclick="testFlow()">🌊 Test Flow</button>
+      </div>
+      
+      <div class="info-panel">
+        <h3>🎯 Goal</h3>
+        <p>Connect start to end with pipes!</p>
+        
+        <div class="timer" id="timer">00:00</div>
+        <div class="moves" id="moves">Moves: 0</div>
+        
+        <h4>How to Play:</h4>
+        <p>• Click pipes to rotate them<br>
+        • Connect <span style="color: #27ae60;">green start</span> to <span style="color: #e74c3c;">red end</span><br>
+        • Test flow to check solution</p>
+        
+        <h4>Pipe Types:</h4>
+        <p>• Straight horizontal/vertical<br>
+        • Corner pieces (4 directions)<br>
+        • Click to rotate!</p>
+        
+        <button class="btn" onclick="resetPuzzle()">Reset</button>
+        <button class="btn" onclick="solvePuzzle()">💡 Hint</button>
+      </div>
+    </div>
+    
+    <a href="puzzlegames.html" style="color: white; text-decoration: none; margin-top: 20px; display: inline-block;">← Back to Puzzle Games</a>
+  </div>
+
+  <div id="winMessage" class="win-message">
+    <div class="win-content">
+      <h2>🎉 Flow Complete!</h2>
+      <p>You connected the pipes successfully!</p>
+      <div>Time: <span id="finalTime">00:00</span></div>
+      <div>Moves: <span id="finalMoves">0</span></div>
+      <button class="btn" onclick="hideWinMessage()">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    let gridSize = 6;
+    let grid = [];
+    let startPos = {x: 0, y: 0};
+    let endPos = {x: 5, y: 5};
+    let correctPath = [];
+    let startTime = null;
+    let gameTimer = null;
+    let moveCount = 0;
+    let gameComplete = false;
+    let difficulty = 2;
+    
+    const difficultySlider = document.getElementById('difficultySlider');
+    const difficultyDisplay = document.getElementById('difficultyDisplay');
+    const pipeGrid = document.getElementById('pipeGrid');
+    const timerDisplay = document.getElementById('timer');
+    const movesDisplay = document.getElementById('moves');
+    
+    const difficultySettings = {
+      1: { size: 5, name: 'Very Easy (5x5)' },
+      2: { size: 6, name: 'Easy (6x6)' },
+      3: { size: 8, name: 'Medium (8x8)' },
+      4: { size: 10, name: 'Hard (10x10)' },
+      5: { size: 12, name: 'Expert (12x12)' }
+    };
+    
+    // Pipe types and their connections
+    const pipeTypes = {
+      'straight-h': { connections: ['left', 'right'], rotations: ['straight-h', 'straight-v'] },
+      'straight-v': { connections: ['top', 'bottom'], rotations: ['straight-v', 'straight-h'] },
+      'corner-tl': { connections: ['top', 'left'], rotations: ['corner-tl', 'corner-tr', 'corner-br', 'corner-bl'] },
+      'corner-tr': { connections: ['top', 'right'], rotations: ['corner-tr', 'corner-br', 'corner-bl', 'corner-tl'] },
+      'corner-br': { connections: ['bottom', 'right'], rotations: ['corner-br', 'corner-bl', 'corner-tl', 'corner-tr'] },
+      'corner-bl': { connections: ['bottom', 'left'], rotations: ['corner-bl', 'corner-tl', 'corner-tr', 'corner-br'] }
+    };
+    
+    difficultySlider.addEventListener('input', function() {
+      difficulty = parseInt(this.value);
+      const settings = difficultySettings[difficulty];
+      gridSize = settings.size;
+      difficultyDisplay.textContent = settings.name;
+    });
+    
+    function generatePuzzle() {
+      stopTimer();
+      gameComplete = false;
+      moveCount = 0;
+      movesDisplay.textContent = 'Moves: 0';
+      
+      // Initialize grid
+      grid = [];
+      for (let i = 0; i < gridSize; i++) {
+        grid[i] = [];
+        for (let j = 0; j < gridSize; j++) {
+          grid[i][j] = {
+            type: 'empty',
+            rotation: 0,
+            isStart: false,
+            isEnd: false,
+            connected: false
+          };
+        }
+      }
+      
+      // Set start and end positions
+      startPos = {x: 0, y: Math.floor(Math.random() * gridSize)};
+      endPos = {x: gridSize - 1, y: Math.floor(Math.random() * gridSize)};
+      
+      grid[startPos.y][startPos.x].isStart = true;
+      grid[endPos.y][endPos.x].isEnd = true;
+      
+      // Generate a valid solution path
+      generateSolutionPath();
+      
+      // Add random pipes to empty cells
+      fillEmptyCells();
+      
+      // Shuffle pipes
+      shufflePipes();
+      
+      createGrid();
+    }
+    
+    function generateSolutionPath() {
+      correctPath = [];
+      const visited = new Set();
+      const current = {x: startPos.x, y: startPos.y};
+      
+      correctPath.push({...current});
+      visited.add(`${current.x},${current.y}`);
+      
+      // Simple pathfinding from start to end
+      while (current.x !== endPos.x || current.y !== endPos.y) {
+        const possibleMoves = [];
+        
+        // Prefer moving towards the target
+        if (current.x < endPos.x && current.x < gridSize - 1) {
+          possibleMoves.push({x: current.x + 1, y: current.y, dir: 'right'});
+        }
+        if (current.y < endPos.y && current.y < gridSize - 1) {
+          possibleMoves.push({x: current.x, y: current.y + 1, dir: 'down'});
+        }
+        if (current.x > endPos.x && current.x > 0) {
+          possibleMoves.push({x: current.x - 1, y: current.y, dir: 'left'});
+        }
+        if (current.y > endPos.y && current.y > 0) {
+          possibleMoves.push({x: current.x, y: current.y - 1, dir: 'up'});
+        }
+        
+        // Add other valid moves if no direct path
+        if (possibleMoves.length === 0) {
+          const directions = [
+            {x: 0, y: -1, dir: 'up'},
+            {x: 1, y: 0, dir: 'right'},
+            {x: 0, y: 1, dir: 'down'},
+            {x: -1, y: 0, dir: 'left'}
+          ];
+          
+          for (let dir of directions) {
+            const next = {x: current.x + dir.x, y: current.y + dir.y};
+            if (next.x >= 0 && next.x < gridSize && next.y >= 0 && next.y < gridSize &&
+                !visited.has(`${next.x},${next.y}`)) {
+              possibleMoves.push({...next, dir: dir.dir});
+            }
+          }
+        }
+        
+        if (possibleMoves.length === 0) break;
+        
+        const move = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+        current.x = move.x;
+        current.y = move.y;
+        correctPath.push({...current});
+        visited.add(`${current.x},${current.y}`);
+      }
+      
+      // Set correct pipe types for the path
+      for (let i = 0; i < correctPath.length; i++) {
+        const pos = correctPath[i];
+        const prev = i > 0 ? correctPath[i - 1] : null;
+        const next = i < correctPath.length - 1 ? correctPath[i + 1] : null;
+        
+        if (!grid[pos.y][pos.x].isStart && !grid[pos.y][pos.x].isEnd) {
+          const pipeType = determinePipeType(pos, prev, next);
+          grid[pos.y][pos.x].type = pipeType;
+        }
+      }
+    }
+    
+    function determinePipeType(pos, prev, next) {
+      const connections = [];
+      
+      if (prev) {
+        if (prev.x < pos.x) connections.push('left');
+        if (prev.x > pos.x) connections.push('right');
+        if (prev.y < pos.y) connections.push('top');
+        if (prev.y > pos.y) connections.push('bottom');
+      }
+      
+      if (next) {
+        if (next.x < pos.x) connections.push('left');
+        if (next.x > pos.x) connections.push('right');
+        if (next.y < pos.y) connections.push('top');
+        if (next.y > pos.y) connections.push('bottom');
+      }
+      
+      // Find matching pipe type
+      for (let [type, data] of Object.entries(pipeTypes)) {
+        if (connections.length === data.connections.length &&
+            connections.every(conn => data.connections.includes(conn))) {
+          return type;
+        }
+      }
+      
+      return 'straight-h'; // fallback
+    }
+    
+    function fillEmptyCells() {
+      const pipeTypeKeys = Object.keys(pipeTypes);
+      
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          if (grid[i][j].type === 'empty') {
+            grid[i][j].type = pipeTypeKeys[Math.floor(Math.random() * pipeTypeKeys.length)];
+          }
+        }
+      }
+    }
+    
+    function shufflePipes() {
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          if (!grid[i][j].isStart && !grid[i][j].isEnd) {
+            const rotations = Math.floor(Math.random() * 4);
+            for (let r = 0; r < rotations; r++) {
+              rotatePipe(i, j);
+            }
+          }
+        }
+      }
+    }
+    
+    function createGrid() {
+      pipeGrid.innerHTML = '';
+      pipeGrid.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+      pipeGrid.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+      
+      const cellSize = Math.min(400 / gridSize, 50);
+      pipeGrid.style.width = `${cellSize * gridSize + (gridSize - 1) * 2 + 20}px`;
+      pipeGrid.style.height = `${cellSize * gridSize + (gridSize - 1) * 2 + 20}px`;
+      
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          const cell = document.createElement('div');
+          cell.className = 'pipe-cell';
+          cell.style.width = `${cellSize}px`;
+          cell.style.height = `${cellSize}px`;
+          
+          if (grid[i][j].isStart) {
+            cell.classList.add('start');
+          } else if (grid[i][j].isEnd) {
+            cell.classList.add('end');
+          }
+          
+          if (grid[i][j].connected) {
+            cell.classList.add('connected');
+          }
+          
+          if (!grid[i][j].isStart && !grid[i][j].isEnd) {
+            const pipe = document.createElement('div');
+            pipe.className = `pipe pipe-${grid[i][j].type}`;
+            cell.appendChild(pipe);
+            
+            cell.onclick = () => clickPipe(i, j);
+          }
+          
+          pipeGrid.appendChild(cell);
+        }
+      }
+    }
+    
+    function clickPipe(row, col) {
+      if (gameComplete || grid[row][col].isStart || grid[row][col].isEnd) return;
+      
+      if (!startTime) {
+        startTime = Date.now();
+        startTimer();
+      }
+      
+      rotatePipe(row, col);
+      moveCount++;
+      movesDisplay.textContent = `Moves: ${moveCount}`;
+      createGrid();
+    }
+    
+    function rotatePipe(row, col) {
+      const cell = grid[row][col];
+      const rotations = pipeTypes[cell.type].rotations;
+      const currentIndex = rotations.indexOf(cell.type);
+      const nextIndex = (currentIndex + 1) % rotations.length;
+      cell.type = rotations[nextIndex];
+    }
+    
+    function testFlow() {
+      clearConnections();
+      
+      const visited = new Set();
+      const queue = [{x: startPos.x, y: startPos.y}];
+      visited.add(`${startPos.x},${startPos.y}`);
+      grid[startPos.y][startPos.x].connected = true;
+      
+      while (queue.length > 0) {
+        const current = queue.shift();
+        const cell = grid[current.y][current.x];
+        
+        // Get connections for current cell
+        let connections = [];
+        if (cell.isStart) {
+          // Start can connect in any direction that has a pipe
+          connections = ['top', 'right', 'bottom', 'left'];
+        } else if (cell.isEnd) {
+          // End can accept connections from any direction
+          connections = ['top', 'right', 'bottom', 'left'];
+        } else {
+          connections = pipeTypes[cell.type].connections;
+        }
+        
+        // Check each connection direction
+        const directions = {
+          'top': {x: 0, y: -1, opposite: 'bottom'},
+          'right': {x: 1, y: 0, opposite: 'left'},
+          'bottom': {x: 0, y: 1, opposite: 'top'},
+          'left': {x: -1, y: 0, opposite: 'right'}
+        };
+        
+        for (let direction of connections) {
+          const dir = directions[direction];
+          const next = {x: current.x + dir.x, y: current.y + dir.y};
+          
+          if (next.x >= 0 && next.x < gridSize && next.y >= 0 && next.y < gridSize &&
+              !visited.has(`${next.x},${next.y}`)) {
+            
+            const nextCell = grid[next.y][next.x];
+            let canConnect = false;
+            
+            if (nextCell.isEnd) {
+              canConnect = true;
+            } else if (nextCell.isStart) {
+              canConnect = false;
+            } else {
+              const nextConnections = pipeTypes[nextCell.type].connections;
+              canConnect = nextConnections.includes(dir.opposite);
+            }
+            
+            if (canConnect) {
+              visited.add(`${next.x},${next.y}`);
+              nextCell.connected = true;
+              queue.push(next);
+            }
+          }
+        }
+      }
+      
+      createGrid();
+      
+      // Check if end is reached
+      if (grid[endPos.y][endPos.x].connected) {
+        gameComplete = true;
+        stopTimer();
+        setTimeout(showWinMessage, 500);
+      }
+    }
+    
+    function clearConnections() {
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+          grid[i][j].connected = false;
+        }
+      }
+    }
+    
+    function solvePuzzle() {
+      // Show a hint by rotating one incorrect pipe towards the correct solution
+      for (let i = 0; i < correctPath.length; i++) {
+        const pos = correctPath[i];
+        const cell = grid[pos.y][pos.x];
+        
+        if (!cell.isStart && !cell.isEnd) {
+          const correctType = determinePipeType(pos, 
+            i > 0 ? correctPath[i - 1] : null,
+            i < correctPath.length - 1 ? correctPath[i + 1] : null);
+          
+          if (cell.type !== correctType) {
+            // Rotate once towards correct solution
+            rotatePipe(pos.y, pos.x);
+            createGrid();
+            break;
+          }
+        }
+      }
+    }
+    
+    function startTimer() {
+      gameTimer = setInterval(updateTimer, 1000);
+    }
+    
+    function stopTimer() {
+      if (gameTimer) {
+        clearInterval(gameTimer);
+        gameTimer = null;
+      }
+      startTime = null;
+    }
+    
+    function updateTimer() {
+      if (!startTime) return;
+      
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+    
+    function showWinMessage() {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      
+      document.getElementById('finalTime').textContent = timeString;
+      document.getElementById('finalMoves').textContent = moveCount;
+      document.getElementById('winMessage').style.display = 'flex';
+    }
+    
+    function hideWinMessage() {
+      document.getElementById('winMessage').style.display = 'none';
+    }
+    
+    function resetPuzzle() {
+      stopTimer();
+      generatePuzzle();
+    }
+    
+    function savePuzzle() {
+      const puzzleData = {
+        type: 'pipepuzzle',
+        gridSize: gridSize,
+        difficulty: difficulty,
+        favorite: false,
+        created: new Date().toISOString()
+      };
+      
+      let library = JSON.parse(localStorage.getItem('puzzleLibrary') || '[]');
+      library.unshift(puzzleData);
+      
+      if (library.length > 25) {
+        library = library.slice(0, 25);
+      }
+      
+      localStorage.setItem('puzzleLibrary', JSON.stringify(library));
+      alert('Pipe puzzle saved to your library!');
+    }
+    
+    // Initialize
+    generatePuzzle();
+  </script>
+</body>
+</html>
