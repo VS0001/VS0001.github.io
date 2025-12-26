@@ -50,12 +50,21 @@
       padding: 10px 20px;
       cursor: pointer;
     }
+    .changelog-link {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      font-size: 14px;
+      color: lightblue;
+      text-decoration: none;
+    }
   </style>
 </head>
 <body>
   <canvas id="game" width="800" height="600"></canvas>
   <div id="hudText">Coins: 0 | Lives: 3 | Time: 00:00</div>
   <button id="backDashboardBtn">Back to Dashboard</button>
+  <a href="changelog.html" class="changelog-link">Changelog</a>
   <div id="winScreen" style="display:none; flex;">
     <div>You Won Level 1!</div>
     <button id="toLevel2Btn"> To level 2</button>
@@ -96,7 +105,7 @@
     const alienShootMultiplier = parseFloat(localStorage.getItem("alienShootMultiplier")) || 1;
     const gameStartTime = parseInt(localStorage.getItem("gameTimeStart")) || Date.now();
     const gameMode = localStorage.getItem("gameMode") || "normal";
-    
+
     // Game mode multipliers
     const bulletSpeedMultiplier = gameMode === "easy" ? 0.75 : gameMode === "hard" ? 1.5 : 1;
     const fireRateMultiplier = gameMode === "easy" ? 1 : gameMode === "hard" ? 1.5 : 1;
@@ -146,27 +155,36 @@
 
     document.addEventListener("keydown", e => {
       keys[e.key] = true;
-      if (e.key === "m" || e.key === "M") {
-        if (minionClones && !minionsSpawned) {
+      if (e.key === "1" && minionClones) { // MEW 1 controls Minions
+        if (!minionsSpawned) {
           spawnPlayerMinions();
           minionsSpawned = true;
         }
       }
-      if (e.key === "w" || e.key === "W") {
-        if (smokeBomb && smokeCooldown <= 0) {
+      if (e.key === "2" && smokeBomb) { // MEW 2 controls Smoke Bomb
+        if (smokeCooldown <= 0) {
           smokeActive = 10000;
           smokeCooldown = 20000;
         }
       }
-      if (e.key === "e" || e.key === "E") {
-        if (timeFreeze && freezeCooldown <= 0) {
+      if (e.key === "3" && timeFreeze) { // MEW 3 controls Time Freeze
+        if (freezeCooldown <= 0) {
           freezeActive = 10000;
           freezeCooldown = 90000;
         }
       }
+      // WASD controls
+      if (e.key === "a" || e.key === "A") keys["ArrowLeft"] = true;
+      if (e.key === "d" || e.key === "D") keys["ArrowRight"] = true;
+      if (e.key === "w" || e.key === "W") keys["ArrowUp"] = true;
+      if (e.key === "s" || e.key === "S") keys["ArrowDown"] = true;
     });
     document.addEventListener("keyup", e => {
       keys[e.key] = false;
+      if (e.key === "a" || e.key === "A") keys["ArrowLeft"] = false;
+      if (e.key === "d" || e.key === "D") keys["ArrowRight"] = false;
+      if (e.key === "w" || e.key === "W") keys["ArrowUp"] = false;
+      if (e.key === "s" || e.key === "S") keys["ArrowDown"] = false;
     });
 
     // Initialize aliens with appropriate health and emojis
@@ -199,6 +217,20 @@
         });
       }
 
+      if (currentLevel === 3) { // Specific boss emoji for Level 3
+        aliens[Math.floor(aliens.length / 2)] = {
+          x: 100 + 3 * 70,
+          y: 50 + 1 * 50,
+          width: 40,
+          height: 40,
+          health: 5, // Boss health
+          isBoss: true,
+          emoji: 'level3boss.png', // Placeholder for image
+          shootTimer: 1000,
+          hitFlashTimer: 0
+        };
+      }
+
       aliens.forEach(alien => {
         if (currentLevel >= 4) { // Level 4+ aliens start firing immediately
           alien.shootTimer = 0;
@@ -223,8 +255,13 @@
       }
     }
 
-    function getAlienEmoji(health) {
-      switch(health) {
+    function getAlienEmoji(alien) {
+      if (alien.isBoss && alien.emoji) {
+        const bossImg = new Image();
+        bossImg.src = alien.emoji;
+        return bossImg;
+      }
+      switch(alien.health) {
         case 2: return "👽";
         case 3: return "😈";
         case 4: return "💀";
@@ -233,9 +270,15 @@
       }
     }
 
-    function drawEmoji(x, y, emoji, size = "25px") {
-      ctx.font = size + " serif";
-      ctx.fillText(emoji, x, y);
+    function drawEmoji(x, y, content, size = "25px", isImage = false) {
+      if (isImage && typeof content === 'string' && content.endsWith('.png')) {
+        const img = new Image();
+        img.src = content;
+        img.onload = () => ctx.drawImage(img, x, y, 40, 40); // Adjust size as needed
+      } else {
+        ctx.font = size + " serif";
+        ctx.fillText(content, x, y);
+      }
     }
 
     function draw(deltaTime) {
@@ -289,7 +332,11 @@
           drawEmoji(alien.x, alien.y, "💥");
           alien.hitFlashTimer -= deltaTime;
         } else {
-          drawEmoji(alien.x, alien.y, getAlienEmoji(alien.health));
+          if (alien.isBoss && alien.emoji) {
+            drawEmoji(alien.x, alien.y, alien.emoji, "40px", true);
+          } else {
+            drawEmoji(alien.x, alien.y, getAlienEmoji(alien));
+          }
         }
       });
 
@@ -326,10 +373,10 @@
     function update(deltaTime) {
       if (gameOver) return;
 
-      if (keys["ArrowLeft"]) player.x -= 6 * speedMultiplier;
-      if (keys["ArrowRight"]) player.x += 6 * speedMultiplier;
-      if (keys["ArrowUp"]) player.y -= 3 * speedMultiplier;
-      if (keys["ArrowDown"]) player.y += 3 * speedMultiplier;
+      if (keys["ArrowLeft"] || keys["a"] || keys["A"]) player.x -= 6 * speedMultiplier;
+      if (keys["ArrowRight"] || keys["d"] || keys["D"]) player.x += 6 * speedMultiplier;
+      if (keys["ArrowUp"] || keys["w"] || keys["W"]) player.y -= 3 * speedMultiplier;
+      if (keys["ArrowDown"] || keys["s"] || keys["S"]) player.y += 3 * speedMultiplier;
 
       player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
       player.y = Math.max(520, Math.min(canvas.height - player.height, player.y));
@@ -371,7 +418,7 @@
         let maxHealth = 0;
 
         aliens.forEach(a => {
-          if (a.health > maxHealth) {
+          if (!a.isBoss && a.health > maxHealth) { // Exclude bosses from target selection
             maxHealth = a.health;
             target = a;
           }
@@ -390,7 +437,7 @@
               aliens.splice(aliens.indexOf(target), 1);
               const basePoints = rewardScaleUp ? originalHealth : (originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : 1);
               score += doublePoints ? basePoints * 2 : basePoints;
-              if (aliens.length === 0) {
+              if (aliens.filter(a => !a.isBoss).length === 0) { // Check if only bosses remain or all are dead
                 gameOver = true;
                 const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
                 localStorage.setItem(`level${currentLevel}Complete`, "true");
@@ -419,17 +466,18 @@
 
                 // Determine next level or dashboard
                 let nextLevelHtml = "";
-                if (currentLevel < 5) {
+                if (currentLevel < 7) { // Changed from 5 to 7 to accommodate more levels
                   nextLevelHtml = `<button id="nextLevelBtn">To Level ${currentLevel + 1}</button>`;
                 } else {
                   nextLevelHtml = `<button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>`;
                 }
                 document.getElementById("winScreen").querySelector("button").outerHTML = nextLevelHtml;
 
-                if (currentLevel < 5) {
+                if (currentLevel < 7) {
                   document.getElementById('nextLevelBtn').onclick = () => {
                     localStorage.setItem("playerLives", player.lives);
                     localStorage.setItem("playerScore", score);
+                    localStorage.setItem("playerDiamonds", playerDiamonds);
                     localStorage.setItem("gameTimeStart", Date.now()); // Reset timer for next level
                     window.location.href = `level${currentLevel + 1}.html`;
                   };
@@ -478,8 +526,10 @@
       let edgeHit = false;
       if (!freezeActive) {
         for (let alien of aliens) {
-          alien.x += alienSpeed * direction;
-          if (alien.x <= 0 || alien.x + alien.width >= canvas.width) edgeHit = true;
+          if (!alien.isBoss) { // Only move non-boss aliens
+            alien.x += alienSpeed * direction;
+            if (alien.x <= 0 || alien.x + alien.width >= canvas.width) edgeHit = true;
+          }
           alien.shootTimer -= deltaTime * alienShootMultiplier;
           if (alien.shootTimer <= 0 && (!smokeActive || Math.random() > 0.7)) {
             alienBullets.push({ x: alien.x + 20, y: alien.y + 20 });
@@ -514,7 +564,7 @@
                 basePoints = originalHealth === 2 ? 2 : originalHealth === 3 ? 3 : originalHealth === 4 ? 4 : 1;
               }
               score += doublePoints ? basePoints * 2 : basePoints;
-              if (aliens.length === 0) {
+              if (aliens.length === 0) { // All aliens destroyed
                 gameOver = true;
                 const currentLevel = parseInt(localStorage.getItem("currentLevel") || "1");
                 localStorage.setItem(`level${currentLevel}Complete`, "true");
@@ -548,17 +598,18 @@
 
                 // Determine next level or dashboard
                 let nextLevelHtml = "";
-                if (currentLevel < 5) {
+                if (currentLevel < 7) { // Changed from 5 to 7
                   nextLevelHtml = `<button id="nextLevelBtn">To Level ${currentLevel + 1}</button>`;
                 } else {
                   nextLevelHtml = `<button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>`;
                 }
                 document.getElementById("winScreen").querySelector("button").outerHTML = nextLevelHtml;
 
-                if (currentLevel < 5) {
+                if (currentLevel < 7) {
                   document.getElementById('nextLevelBtn').onclick = () => {
                     localStorage.setItem("playerLives", player.lives);
                     localStorage.setItem("playerScore", score);
+                    localStorage.setItem("playerDiamonds", playerDiamonds);
                     localStorage.setItem("gameTimeStart", Date.now()); // Reset timer for next level
                     window.location.href = `level${currentLevel + 1}.html`;
                   };
@@ -628,17 +679,18 @@
 
                 // Determine next level or dashboard
                 let nextLevelHtml = "";
-                if (currentLevel < 5) {
+                if (currentLevel < 7) { // Changed from 5 to 7
                   nextLevelHtml = `<button id="nextLevelBtn">To Level ${currentLevel + 1}</button>`;
                 } else {
                   nextLevelHtml = `<button onclick="window.location.href='dashboard.html'">Back to Dashboard</button>`;
                 }
                 document.getElementById("winScreen").querySelector("button").outerHTML = nextLevelHtml;
 
-                if (currentLevel < 5) {
+                if (currentLevel < 7) {
                   document.getElementById('nextLevelBtn').onclick = () => {
                     localStorage.setItem("playerLives", player.lives);
                     localStorage.setItem("playerScore", score);
+                    localStorage.setItem("playerDiamonds", playerDiamonds);
                     localStorage.setItem("gameTimeStart", Date.now()); // Reset timer for next level
                     window.location.href = `level${currentLevel + 1}.html`;
                   };
@@ -754,9 +806,12 @@
       <button id="fireBtn" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background: rgba(255,0,0,0.7); border: none; border-radius: 50%; color: white; font-size: 16px; font-weight: bold;">FIRE</button>
       <button id="autoFireBtn" style="position: absolute; top: 50px; right: 20px; padding: 10px; background: rgba(255,255,255,0.2); border: 1px solid white; border-radius: 5px; color: white;">Auto-Fire: OFF</button>
       <div id="abilityButtons" style="position: absolute; top: 100px; left: 20px; display: flex; flex-direction: column; gap: 10px;">
-        <button id="minionBtn" style="padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (M)</button>
-        <button id="freezeBtn" style="padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (E)</button>
-        <button id="smokeBtn" style="padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (W)</button>
+        <button id="minionBtn" style="padding: 10px; background: rgba(255,0,0,0.7); border: none; border-radius: 5px; color: white;">Minions (1)</button>
+        <button id="freezeBtn" style="padding: 10px; background: rgba(0,0,255,0.7); border: none; border-radius: 5px; color: white;">Time Freeze (3)</button>
+        <button id="smokeBtn" style="padding: 10px; background: rgba(128,128,128,0.7); border: none; border-radius: 5px; color: white;">Smoke Bomb (2)</button>
+      </div>
+      <div style="position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-size: 16px; color: lightgray;">
+        Controls: Arrow Keys or WASD | Space to Fire | R for Auto-Fire
       </div>
     `;
     document.body.appendChild(touchControls);
@@ -866,17 +921,17 @@
 
       // Ability buttons
       document.getElementById('minionBtn').addEventListener('click', () => {
-        const event = new KeyboardEvent('keydown', { key: 'M' });
+        const event = new KeyboardEvent('keydown', { key: '1' });
         document.dispatchEvent(event);
       });
 
       document.getElementById('freezeBtn').addEventListener('click', () => {
-        const event = new KeyboardEvent('keydown', { key: 'E' });
+        const event = new KeyboardEvent('keydown', { key: '3' });
         document.dispatchEvent(event);
       });
 
       document.getElementById('smokeBtn').addEventListener('click', () => {
-        const event = new KeyboardEvent('keydown', { key: 'W' });
+        const event = new KeyboardEvent('keydown', { key: '2' });
         document.dispatchEvent(event);
       });
 
